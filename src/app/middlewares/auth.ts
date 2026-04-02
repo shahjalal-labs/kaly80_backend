@@ -13,7 +13,7 @@ const auth = (...roles: string[]) => {
   ) => {
     try {
       const authorizationHeader = req.headers.authorization;
-      console.log("Authorization Header:", authorizationHeader);
+      // console.log("Authorization Header:", authorizationHeader);
 
       if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
         throw new ApiError(

@@ -8,24 +8,29 @@ generator client {
 }
 
 model User {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  fullName     String
-  email        String     @unique
-  password     String
-  fcmToken     String?
-  appleId      String?
-  profileImage String?
-  profession   String?
-  bio          String?
-  phoneNumber  String?
-  gender       Gender?
-  dob          DateTime?
-  address      String?
-  role         UserRole
-  isSetup      Boolean    @default(false)
-  status       UserStatus @default(Active)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  fullName      String
+  email         String         @unique
+  password      String
+  fcmToken      String?
+  appleId       String?
+  profileImage  String?
+  profession    String?
+  bio           String?
+  phoneNumber   String?
+  gender        Gender?
+  dob           DateTime?
+  address       String?
+  role          UserRole
+  isSetup       Boolean        @default(false)
+  status        UserStatus     @default(Active)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  userLocations UserLocation[]
+  playerProfile PlayerProfile?
+  coachProfile  CoachProfile?
+  clubProfile   ClubProfile?
+  scoutProfile  ScoutProfile?
 
   @@map("users")
 }
@@ -39,6 +44,106 @@ model PendingUser {
   expiresAt DateTime
   role      UserRole
   createdAt DateTime @default(now())
+}
+
+model UserLocation {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_locations")
+}
+
+model PlayerProfile {
+  id                 String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String     @unique @db.ObjectId
+  gender             Gender
+  profession         String
+  subProfession      String
+  city               String
+  bio                String
+  education          String?
+  skills             String[]
+  dob                String
+  height             String
+  weight             String
+  bestFoot           TFoot
+  position           TPosition
+  secondaryPosition  TPosition?
+  playerCard         String
+  medicalCertificate String
+  category           String
+  playingStyle       String[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  player             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("player_profiles")
+}
+
+model CoachProfile {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @unique @db.ObjectId
+  coachRole      String
+  city           String
+  licences       String[]
+  skills         String[]
+  lscSenior      String
+  lscYouth       String
+  bio            String
+  education      String?
+  dob            String
+  height         String
+  weight         String
+  coachCard      String
+  expCertificate String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  coach          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("coach_profiles")
+}
+
+model ClubProfile {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  clubName      String
+  location      String
+  bio           String
+  category      String
+  agonistica    String
+  preAgonistica String
+  socialLinks   String[]
+  logo          String
+  clubCard      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  club          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("club_profiles")
+}
+
+model ScoutProfile {
+  id             String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String      @unique @db.ObjectId
+  experience     String
+  currentOrg     String?
+  bio            String
+  scoutingLevel  String
+  specialization String
+  evalMethod     String
+  preferredAge   String
+  preferredRoles TPosition[]
+  licence        String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  scout          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("scout_profiles")
 }
 
 model Otp {
@@ -66,4 +171,24 @@ enum Gender {
   Male
   Female
   Other
+}
+
+enum TFoot {
+  Left
+  Right
+  Both
+}
+
+enum TPosition {
+  Goalkeeper
+  Left_Back
+  CB_Left
+  CB_Right
+  Right_Back
+  CM_Left
+  CM_Center
+  CM_Right
+  Left_Winger
+  Right_Winger
+  Striker
 }

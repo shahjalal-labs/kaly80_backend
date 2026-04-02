@@ -46,7 +46,7 @@ const createUser = async (payload: User) => {
 
   const emailSubject = "Signup Verification";
   const html = emailBody(payload.fullName, otp);
-  await sendEmail(payload.email, emailSubject, html);
+  // await sendEmail(payload.email, emailSubject, html);
 
   return otp;
 };

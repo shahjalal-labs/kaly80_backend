@@ -107,12 +107,23 @@ const deleteAccount = catchAsync(async (req, res) => {
   });
 });
 
+const updateUserLocation = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  await authService.userLocationUpdateInDB(id, req.body);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "location updated successfully",
+  });
+});
+
 export const authController = {
   loginUser,
   authLogin,
   myProfile,
   updateProfile,
   sendForgotPasswordOtp,
+  updateUserLocation,
   verifyForgotPasswordOtpCode,
   resetPassword,
   changePassword,

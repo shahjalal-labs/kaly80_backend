@@ -27,5 +27,11 @@ router.patch(
 );
 router.patch("/change-password", auth(), authController.changePassword);
 router.delete("/delete-account", auth(), authController.deleteAccount);
+router.post(
+  "/update/user-location",
+  auth(),
+  validateRequest(authValidation.locationUpdateSchema),
+  authController.updateUserLocation,
+);
 
 export const authRoute = router;

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import ApiError from "../../../errors/ApiErrors";
 import { jwtHelpers } from "../../../helpers/jwtHelpers";
 import config from "../../../config";
-import { User } from "@prisma/client";
+import { User, UserLocation } from "@prisma/client";
 import generateOTP from "../../../helpers/generateOtp";
 import { uploadInSpace } from "../../../helpers/uploadInSpace";
 import sendEmail from "../../../helpers/sendEmail";
@@ -84,7 +84,7 @@ const authLoginIntoDB = async (payload: User) => {
   }
 
   if (!payload.role || (!payload.email && !payload.appleId)) {
-    throw new ApiError(400, "Please provide role and Full Name");
+    throw new ApiError(400, "Please provide role");
   }
 
   const plainPassword = "12345Aa@";
@@ -285,6 +285,29 @@ const deleteAccount = async (userId: string) => {
   return;
 };
 
+const userLocationUpdateInDB = async (
+  userId: string,
+  userLocation: UserLocation,
+) => {
+  const location = await prisma.userLocation.findFirst({
+    where: { userId: userId },
+  });
+  if (!location) {
+    const result = await prisma.userLocation.create({
+      data: { ...userLocation, userId: userId },
+    });
+
+    return result;
+  }
+
+  const result = await prisma.userLocation.update({
+    where: { id: location.id },
+    data: userLocation,
+  });
+
+  return result;
+};
+
 export const authService = {
   loginUserIntoDB,
   authLoginIntoDB,
@@ -295,4 +318,5 @@ export const authService = {
   resetForgotPasswordDB,
   changePassword,
   deleteAccount,
+  userLocationUpdateInDB,
 };

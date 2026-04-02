@@ -36,8 +36,14 @@ const coverPhoto = upload.single("coverPhoto");
 
 // upload multiple image
 const uploadMultiple = upload.fields([
-  { name: "thumbnail", maxCount: 1 },
-  { name: "classVideo", maxCount: 1 },
+  { name: "profileImage", maxCount: 1 },
+  { name: "playerCard", maxCount: 1 },
+  { name: "medicalCertificate", maxCount: 1 },
+  { name: "expCertificate", maxCount: 1 },
+  { name: "coachCard", maxCount: 1 },
+  { name: "clubCard", maxCount: 1 },
+  { name: "logo", maxCount: 1 },
+  { name: "licence", maxCount: 1 },
 ]);
 
 export const fileUploader = {
