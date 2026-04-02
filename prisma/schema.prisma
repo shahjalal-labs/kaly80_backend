@@ -75,7 +75,7 @@ model PlayerProfile {
   position           TPosition
   secondaryPosition  TPosition?
   playerCard         String
-  medicalCertificate String
+  medicalCertificate String?
   category           String
   playingStyle       String[]
   createdAt          DateTime   @default(now())

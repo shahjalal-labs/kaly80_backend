@@ -41,9 +41,9 @@ const setUpPlayerProfileInDB = async (req: Request) => {
     throw new ApiError(404, "Player card is required");
   }
 
-  if (!medicalCertificate) {
-    throw new ApiError(404, "Medical certificate is required");
-  }
+  // if (!medicalCertificate) {
+  //   throw new ApiError(404, "Medical certificate is required");
+  // }
 
   await prisma.$transaction(async (tx) => {
     await tx.playerProfile.create({
@@ -65,7 +65,7 @@ const setUpPlayerProfileInDB = async (req: Request) => {
         category: payload.category,
         skills: payload.skills,
         playerCard: playerCard[0],
-        medicalCertificate: medicalCertificate[0],
+        medicalCertificate: medicalCertificate?.[0] || null,
       },
     });
 
