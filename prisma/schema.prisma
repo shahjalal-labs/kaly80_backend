@@ -71,7 +71,7 @@ model PlayerProfile {
   dob                String
   height             String
   weight             String
-  gallery            String[]
+  gallery            Float[]
   highlights         String[]
   bestFoot           TFoot
   position           TPosition
