@@ -71,6 +71,8 @@ model PlayerProfile {
   dob                String
   height             String
   weight             String
+  gallery            String[]
+  highlights         String[]
   bestFoot           TFoot
   position           TPosition
   secondaryPosition  TPosition?
