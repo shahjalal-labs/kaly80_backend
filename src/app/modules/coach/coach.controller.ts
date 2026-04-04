@@ -4,6 +4,7 @@ import { coachService } from "./coach.service";
 
 const setupCoachProfile = catchAsync(async (req, res) => {
   await coachService.setUpCoachProfileInDB(req);
+  console.log(req.body);
   sendResponse(res, {
     success: true,
     statusCode: 201,

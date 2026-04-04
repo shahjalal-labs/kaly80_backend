@@ -27,10 +27,10 @@ const setUpClubProfileInDB = async (req: Request) => {
     );
   };
 
-  const [profileImage, logo, clubCard] = await Promise.all([
+  const [profileImage, logo] = await Promise.all([
     processImages(files?.profileImage, "profileImage"),
     processImages(files?.logo, "logo"),
-    processImages(files?.clubCard, "clubCard"),
+    
   ]);
 
   if (!profileImage) {
@@ -39,10 +39,6 @@ const setUpClubProfileInDB = async (req: Request) => {
 
   if (!logo) {
     throw new ApiError(404, "Logo is required");
-  }
-
-  if (!clubCard) {
-    throw new ApiError(404, "Club card is required");
   }
 
   await prisma.$transaction(async (tx) => {
@@ -55,8 +51,7 @@ const setUpClubProfileInDB = async (req: Request) => {
         preAgonistica: payload.preAgonistica,
         clubName: payload.clubName,
         socialLinks: payload.socialLinks,
-        logo: logo[0],
-        clubCard: clubCard[0],
+        logo: logo[0],        
         category: payload.category,
       },
     });

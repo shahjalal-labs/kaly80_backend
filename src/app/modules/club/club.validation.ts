@@ -5,8 +5,8 @@ const clubValidationSchema = z.object({
   location: z.string(),
   bio: z.string(),
   category: z.string(),
-  agonistica: z.string(),
-  preAgonistica: z.string(),
+  // agonistica: z.string(),
+  // preAgonistica: z.string(),
   socialLinks: z.array(z.string()).optional(),
 });
 

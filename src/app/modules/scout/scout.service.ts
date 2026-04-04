@@ -2,7 +2,6 @@ import { Request } from "express";
 import prisma from "../../../shared/prisma";
 import ApiError from "../../../errors/ApiErrors";
 import { uploadInSpace } from "../../../helpers/uploadInSpace";
-import exp from "constants";
 
 const setUpScoutProfileInDB = async (req: Request) => {
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };

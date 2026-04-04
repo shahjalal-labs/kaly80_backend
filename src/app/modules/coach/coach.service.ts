@@ -7,6 +7,7 @@ const setUpCoachProfileInDB = async (req: Request) => {
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
   const payload = req.body;
   const userId = req.user.id;
+  console.log(payload);
 
   const coach = await prisma.user.findUniqueOrThrow({
     where: { id: userId, role: "Coach" },

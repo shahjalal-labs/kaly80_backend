@@ -117,11 +117,10 @@ model ClubProfile {
   location      String
   bio           String
   category      String
-  agonistica    String
-  preAgonistica String
+  agonistica    String[]
+  preAgonistica String[]
   socialLinks   String[]
-  logo          String
-  clubCard      String
+  logo          String  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   club          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -135,10 +134,10 @@ model ScoutProfile {
   experience     String
   currentOrg     String?
   bio            String
-  scoutingLevel  String
-  specialization String
-  evalMethod     String
-  preferredAge   String
+  scoutingLevel  String[]
+  specialization String[]
+  evalMethod     String[]
+  preferredAge   String[]
   preferredRoles TPosition[]
   licence        String
   createdAt      DateTime    @default(now())
