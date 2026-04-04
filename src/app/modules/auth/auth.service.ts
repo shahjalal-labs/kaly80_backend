@@ -52,6 +52,7 @@ const loginUserIntoDB = async (payload: {
     accessToken,
     role: user.role,
     isSetup: user.isSetup,
+    fullName: user.fullName,
   };
 };
 
@@ -80,7 +81,7 @@ const authLoginIntoDB = async (payload: User) => {
       data: { fcmToken: payload.fcmToken },
     });
 
-    return { accessToken, id: user.id, role: user.role, isSetup: user.isSetup };
+    return { accessToken, id: user.id, role: user.role, isSetup: user.isSetup, fullName: user.fullName };
   }
 
   if (!payload.role || (!payload.email && !payload.appleId)) {
@@ -108,6 +109,7 @@ const authLoginIntoDB = async (payload: User) => {
     id: newUser.id,
     role: newUser.role,
     isSetup: false,
+    fullName: newUser.fullName,
   };
 };
 
