@@ -78,6 +78,60 @@ const setUpCoachProfileInDB = async (req: Request) => {
   return;
 };
 
+const updateCoachProfileInDB = async (req: Request) => {
+  const userId = req.user.id;
+  const payload = req.body;
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  const coach = await prisma.user.findUniqueOrThrow({
+    where: { id: userId, role: "Coach" },
+    include: { coachProfile: true },
+  });
+
+  const processImages = async (
+    files: Express.Multer.File[] | undefined,
+    folder: string,
+  ) => {
+    if (!files || files.length === 0) return null;
+    return Promise.all(
+      files.map((file) => uploadInSpace(file, `courses/${folder}`)),
+    );
+  };
+
+  const [profileImage, expCertificate] = await Promise.all([
+    processImages(files?.profileImage, "profileImage"),
+    processImages(files?.expCertificate, "expCertificate"),
+  ]);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        profileImage: profileImage ? profileImage[0] : coach.profileImage,
+        fullName: payload.fullName || coach.fullName,
+        bio: payload.bio || coach.bio,
+      },
+    });
+
+    await tx.coachProfile.update({
+      where: { userId },
+      data: {
+        coachRole: payload.coachRole || coach.coachProfile?.coachRole,
+        skills: payload.skills || coach.coachProfile?.skills,
+        education: payload.education || coach.coachProfile?.education,
+        city: payload.city || coach.coachProfile?.city,
+        bio: payload.bio || coach.coachProfile?.bio,
+        expCertificate: expCertificate
+          ? expCertificate[0]
+          : coach.coachProfile?.expCertificate,
+      },
+    });
+  });
+
+  return;
+};
+
 export const coachService = {
   setUpCoachProfileInDB,
+  updateCoachProfileInDB,
 };

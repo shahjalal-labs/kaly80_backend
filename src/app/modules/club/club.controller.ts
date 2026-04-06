@@ -11,8 +11,16 @@ const setupClubProfile = catchAsync(async (req, res) => {
   });
 });
 
-
+const updateClubProfile = catchAsync(async (req, res) => {
+  await clubService.updateClubProfileInDB(req);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Profile updated successful",
+  });
+});
 
 export const clubController = {
     setupClubProfile,
+    updateClubProfile,
 }

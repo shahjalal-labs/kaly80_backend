@@ -17,5 +17,20 @@ router.post(
   validateRequest(playerValidation.playerProfileSchema),
   playerController.setupPlayerProfile,
 );
+router.put(
+  "/update-profile",
+  auth(UserRole.Player),
+  fileUploader.profileImage,
+  parseBodyData,
+  validateRequest(playerValidation.updatePlayerProfileSchema),
+  playerController.updatePlayerProfile,
+);
+
+router.put(
+  "/add-highlights-video",
+  auth(UserRole.Player),
+  fileUploader.highlightsVideo,
+  playerController.addHighlightsVideo
+);
 
 export const playerRoutes = router;

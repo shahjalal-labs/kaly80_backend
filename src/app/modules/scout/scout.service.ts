@@ -68,6 +68,64 @@ const setUpScoutProfileInDB = async (req: Request) => {
   return;
 };
 
+const updateScoutProfileInDB = async (req: Request) => {
+  const userId = req.user.id;
+  const payload = req.body;
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+  const scout = await prisma.user.findUniqueOrThrow({
+    where: { id: userId, role: "Scout" },
+    include: { scoutProfile: true },
+  });
+
+  const processImages = async (
+    files: Express.Multer.File[] | undefined,
+    folder: string,
+  ) => {
+    if (!files || files.length === 0) return null;
+    return Promise.all(
+      files.map((file) => uploadInSpace(file, `courses/${folder}`)),
+    );
+  };
+
+  const [profileImage, licence] = await Promise.all([
+    processImages(files?.profileImage, "profileImage"),
+    processImages(files?.licence, "licence"),
+  ]);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        profileImage: profileImage ? profileImage[0] : scout.profileImage,
+        fullName: payload.fullName || scout.fullName,
+        bio: payload.bio || scout.bio,
+      },
+    });
+
+    await tx.scoutProfile.update({
+      where: { userId },
+      data: {
+        bio: payload.bio || scout.scoutProfile?.bio,
+        licence: licence ? licence[0] : scout.scoutProfile?.licence,
+        currentOrg: payload.currentOrg || scout.scoutProfile?.currentOrg,
+        experience: payload.experience || scout.scoutProfile?.experience,
+        evalMethod: payload.evalMethod || scout.scoutProfile?.evalMethod,
+        preferredAge: payload.preferredAge || scout.scoutProfile?.preferredAge,
+        preferredRoles:
+          payload.preferredRoles || scout.scoutProfile?.preferredRoles,
+        scoutingLevel:
+          payload.scoutingLevel || scout.scoutProfile?.scoutingLevel,
+        specialization:
+          payload.specialization || scout.scoutProfile?.specialization,
+      },
+    });
+  });
+
+  return;
+};
+
 export const scoutService = {
   setUpScoutProfileInDB,
+  updateScoutProfileInDB,
 };

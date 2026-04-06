@@ -94,6 +94,7 @@ model CoachProfile {
   city           String
   licences       String[]
   skills         String[]
+  gallery        String[]
   lscSenior      String
   lscYouth       String
   bio            String
@@ -117,10 +118,15 @@ model ClubProfile {
   location      String
   bio           String
   category      String
+  playingField  String?
   agonistica    String[]
   preAgonistica String[]
   socialLinks   String[]
-  logo          String  
+  logo          String
+  lost          Int?
+  won           Int?
+  members       Int?
+  year          String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   club          User     @relation(fields: [userId], references: [id], onDelete: Cascade)

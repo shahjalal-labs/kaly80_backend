@@ -18,4 +18,13 @@ router.post(
   scoutController.setupScoutProfile,
 );
 
+router.put(
+  "/update-profile",
+  auth(UserRole.Scout),
+  fileUploader.uploadMultiple,
+  parseBodyData,
+  // validateRequest(coachValidation.coachProfileSchema),
+  scoutController.updateScoutProfile,
+);
+
 export const scoutRoutes = router;

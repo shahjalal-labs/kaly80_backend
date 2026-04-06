@@ -30,7 +30,6 @@ const setUpClubProfileInDB = async (req: Request) => {
   const [profileImage, logo] = await Promise.all([
     processImages(files?.profileImage, "profileImage"),
     processImages(files?.logo, "logo"),
-    
   ]);
 
   if (!profileImage) {
@@ -51,7 +50,8 @@ const setUpClubProfileInDB = async (req: Request) => {
         preAgonistica: payload.preAgonistica,
         clubName: payload.clubName,
         socialLinks: payload.socialLinks,
-        logo: logo[0],        
+        playingField: payload.playingField,
+        logo: logo[0],
         category: payload.category,
       },
     });
@@ -68,7 +68,52 @@ const setUpClubProfileInDB = async (req: Request) => {
   return;
 };
 
+const updateClubProfileInDB = async (req: Request) => {
+  const userId = req.user.id;
+  const payload = req.body;
+  const file = req.file as Express.Multer.File | undefined;
+
+  const club = await prisma.user.findUniqueOrThrow({
+    where: { id: userId, role: "Club" },
+    include: { clubProfile: true },
+  });
+
+  const processImage = async (file: Express.Multer.File, folder: string) => {
+    if (!file) return null;
+    return uploadInSpace(file, `courses/${folder}`);
+  };
+
+  const profileImage = file ? await processImage(file, "profileImage") : null;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        profileImage: profileImage || club.profileImage,
+        fullName: payload.fullName || club.fullName,
+        bio: payload.bio || club.bio,
+      },
+    });
+
+    await tx.clubProfile.update({
+      where: { userId },
+      data: {
+        clubName: payload.clubName || club.clubProfile?.clubName,
+        location: payload.location || club.clubProfile?.location,
+        bio: payload.bio || club.clubProfile?.bio,
+        lost: payload.lost || club.clubProfile?.lost,
+        won: payload.won || club.clubProfile?.won,
+        members: payload.members || club.clubProfile?.members,
+        year: payload.year || club.clubProfile?.year,
+        playingField: payload.playingField || club.clubProfile?.playingField,
+      },
+    });
+  });
+
+  return;
+};
 
 export const clubService = {
   setUpClubProfileInDB,
+  updateClubProfileInDB,
 };

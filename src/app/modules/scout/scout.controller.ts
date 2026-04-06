@@ -11,6 +11,16 @@ const setupScoutProfile = catchAsync(async (req, res) => {
   });
 });
 
+const updateScoutProfile = catchAsync(async (req, res) => {
+  await scoutService.updateScoutProfileInDB(req);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Profile updated successful",
+  });
+});
+
 export const scoutController = {
     setupScoutProfile,
+    updateScoutProfile,
 }

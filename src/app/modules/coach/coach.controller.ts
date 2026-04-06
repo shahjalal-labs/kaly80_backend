@@ -12,7 +12,19 @@ const setupCoachProfile = catchAsync(async (req, res) => {
   });
 });
 
+const updateCoachProfile = catchAsync(async (req, res) => {
+  await coachService.updateCoachProfileInDB(req);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Profile updated successful",
+  });
+});
+
 
 export const coachController = {
     setupCoachProfile,
-}
+    updateCoachProfile,
+};
+
+

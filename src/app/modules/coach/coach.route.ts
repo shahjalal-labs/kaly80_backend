@@ -17,5 +17,13 @@ router.post(
   validateRequest(coachValidation.coachProfileSchema),
   coachController.setupCoachProfile,
 );
+router.put(
+  "/update-profile",
+  auth(UserRole.Coach),
+  fileUploader.uploadMultiple,
+  parseBodyData,
+  // validateRequest(coachValidation.coachProfileSchema),
+  coachController.updateCoachProfile,
+);
 
 export const coachRoutes = router;

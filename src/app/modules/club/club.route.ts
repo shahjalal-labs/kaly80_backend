@@ -18,4 +18,13 @@ router.post(
   clubController.setupClubProfile,
 );
 
+router.put(
+  "/update-profile",
+  auth(UserRole.Club),
+  fileUploader.profileImage,
+  parseBodyData,
+  // validateRequest(clubValidation.clubValidationSchema),
+  clubController.updateClubProfile,
+);
+
 export const clubRoutes = router;

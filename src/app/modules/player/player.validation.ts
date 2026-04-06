@@ -36,6 +36,17 @@ const playerProfileSchema = z.object({
   category: z.string().min(1, "Category is required"),
 });
 
+const updatePlayerProfileSchema = z.object({
+  bio: z.string().optional(),
+  fullName: z.string().optional(),
+  height: z.string().optional(),
+  weight: z.string().optional(),
+  bestFoot: TFootEnum.optional(),
+  position: TPositionEnum.optional(),
+  secondaryPosition: TPositionEnum.optional(),
+});
+
 export const playerValidation = {
   playerProfileSchema,
+  updatePlayerProfileSchema,
 };

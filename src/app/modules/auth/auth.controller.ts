@@ -117,6 +117,15 @@ const updateUserLocation = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const addPhotoToGallery = catchAsync(async (req, res) => {
+  await authService.addPhotoInGallery(req);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Photo added to gallery successful",
+  });
+});
+
 export const authController = {
   loginUser,
   authLogin,
@@ -128,4 +137,5 @@ export const authController = {
   resetPassword,
   changePassword,
   deleteAccount,
+  addPhotoToGallery,
 };

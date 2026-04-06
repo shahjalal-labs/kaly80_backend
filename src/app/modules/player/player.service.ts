@@ -81,6 +81,97 @@ const setUpPlayerProfileInDB = async (req: Request) => {
   return;
 };
 
+const updatePlayerProfileInDB = async (req: Request) => {
+  const userId = req.user.id;
+  const payload = req.body;
+  const file = req.file as Express.Multer.File | undefined;
+
+  const player = await prisma.user.findUniqueOrThrow({
+    where: { id: userId, role: "Player" },
+    include: { playerProfile: true },
+  });
+
+  const processImage = async (file: Express.Multer.File, folder: string) => {
+    if (!file) return null;
+    return uploadInSpace(file, `courses/${folder}`);
+  };
+
+  const profileImage = file ? await processImage(file, "profileImage") : null;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        profileImage: profileImage || player.profileImage,
+        fullName: payload.fullName || player.fullName,
+        bio: payload.bio || player.bio,
+      },
+    });
+
+    await tx.playerProfile.update({
+      where: { userId },
+      data: {
+        bestFoot: payload.bestFoot || player.playerProfile?.bestFoot,
+        height: payload.height || player.playerProfile?.height,
+        weight: payload.weight || player.playerProfile?.weight,
+        position: payload.position || player.playerProfile?.position,
+        bio: payload.bio || player.playerProfile?.bio,
+        secondaryPosition:
+          payload.secondaryPosition || player.playerProfile?.secondaryPosition,
+      },
+    });
+  });
+
+  return;
+};
+
+const addHighlightsVideo = async (req: Request) => {
+  const userId = req.user.id;
+  const file = req.file as Express.Multer.File | undefined;
+
+  const player = await prisma.user.findUniqueOrThrow({
+    where: { id: userId, role: "Player" },
+    select: {
+      playerProfile: {
+        select: {
+          highlights: true,
+        },
+      },
+    },
+  });
+
+  const processImage = async (file: Express.Multer.File, folder: string) => {
+    if (!file) return null;
+    return uploadInSpace(file, `courses/${folder}`);
+  };
+
+  const highlightsVideo = file
+    ? await processImage(file, "highlightsVideo")
+    : null;
+
+  if (!highlightsVideo) {
+    throw new ApiError(404, "Video is required");
+  }
+
+  if (highlightsVideo.split(".").pop() !== "mp4") {
+    throw new ApiError(400, "Only mp4 format is allowed for highlights video");
+  }
+
+  await prisma.playerProfile.update({
+    where: { userId },
+    data: {
+      highlights: [
+        ...(player.playerProfile?.highlights || []),
+        highlightsVideo,
+      ],
+    },
+  });
+
+  return;
+};
+
 export const playerService = {
   setUpPlayerProfileInDB,
+  updatePlayerProfileInDB,
+  addHighlightsVideo,
 };

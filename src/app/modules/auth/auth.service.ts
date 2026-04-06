@@ -7,6 +7,7 @@ import { User, UserLocation } from "@prisma/client";
 import generateOTP from "../../../helpers/generateOtp";
 import { uploadInSpace } from "../../../helpers/uploadInSpace";
 import sendEmail from "../../../helpers/sendEmail";
+import { Request } from "express";
 
 const loginUserIntoDB = async (payload: {
   email: string;
@@ -81,7 +82,13 @@ const authLoginIntoDB = async (payload: User) => {
       data: { fcmToken: payload.fcmToken },
     });
 
-    return { accessToken, id: user.id, role: user.role, isSetup: user.isSetup, fullName: user.fullName };
+    return {
+      accessToken,
+      id: user.id,
+      role: user.role,
+      isSetup: user.isSetup,
+      fullName: user.fullName,
+    };
   }
 
   if (!payload.role || (!payload.email && !payload.appleId)) {
@@ -211,17 +218,42 @@ const myProfile = async (userId: string) => {
       gender: true,
       address: true,
       phoneNumber: true,
+      profession: true,
+      role: true,
       bio: true,
       dob: true,
       profileImage: true,
       email: true,
+      playerProfile: true,
+      coachProfile: true,
+      scoutProfile: true,
+      clubProfile: true,
     },
   });
   if (!user) {
     throw new ApiError(404, "User not found!");
   }
 
-  return user;
+  const { playerProfile, coachProfile, scoutProfile, clubProfile, ...rest } =
+    user;
+
+  if (user.role === "Player") {
+    return { ...rest, playerProfile };
+  }
+
+  if (user.role === "Coach") {
+    return { ...rest, coachProfile };
+  }
+
+  if (user.role === "Scout") {
+    return { ...rest, scoutProfile };
+  }
+
+  if (user.role === "Club") {
+    return { ...rest, clubProfile };
+  }
+
+  return rest;
 };
 
 const updateProfileIntoDB = async (
@@ -310,6 +342,58 @@ const userLocationUpdateInDB = async (
   return result;
 };
 
+const addPhotoInGallery = async (req: Request) => {
+  const userId = req.user.id;
+  const file = req.file as Express.Multer.File | undefined;
+
+  const player = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: {
+      role: true,
+      playerProfile: {
+        select: {
+          gallery: true,
+        },
+      },
+      coachProfile: {
+        select: {
+          gallery: true,
+        },
+      },
+    },
+  });
+
+  const processImage = async (file: Express.Multer.File, folder: string) => {
+    if (!file) return null;
+    return uploadInSpace(file, `courses/${folder}`);
+  };
+
+  const galleryImage = file ? await processImage(file, "galleryImage") : null;
+
+  if (!galleryImage) {
+    throw new ApiError(404, "Image is required");
+  }
+
+  if (player.role === "Player") {
+    await prisma.playerProfile.update({
+      where: { userId },
+      data: {
+        gallery: [...(player.playerProfile?.gallery || []), galleryImage],
+      },
+    });
+    return;
+  }
+
+  await prisma.coachProfile.update({
+    where: { userId },
+    data: {
+      gallery: [...(player.coachProfile?.gallery || []), galleryImage],
+    },
+  });
+
+  return;
+};
+
 export const authService = {
   loginUserIntoDB,
   authLoginIntoDB,
@@ -321,4 +405,5 @@ export const authService = {
   changePassword,
   deleteAccount,
   userLocationUpdateInDB,
+  addPhotoInGallery,
 };

@@ -5,6 +5,7 @@ import { authValidation } from "./auth.validation";
 import auth from "../../middlewares/auth";
 import { fileUploader } from "../../../helpers/fileUploader";
 import { parseBodyData } from "../../middlewares/parseBodyData";
+import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
@@ -32,6 +33,13 @@ router.post(
   auth(),
   validateRequest(authValidation.locationUpdateSchema),
   authController.updateUserLocation,
+);
+
+router.put(
+  "/add-photo-to-gallery",
+  auth(UserRole.Player, UserRole.Coach),
+  fileUploader.galleryImage,
+  authController.addPhotoToGallery,
 );
 
 export const authRoute = router;
