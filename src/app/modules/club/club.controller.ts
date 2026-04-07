@@ -21,6 +21,6 @@ const updateClubProfile = catchAsync(async (req, res) => {
 });
 
 export const clubController = {
-    setupClubProfile,
-    updateClubProfile,
-}
+  setupClubProfile,
+  updateClubProfile,
+};

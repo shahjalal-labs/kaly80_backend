@@ -33,6 +33,7 @@ const upload = multer({
 // upload single image
 const profileImage = upload.single("profileImage");
 const galleryImage = upload.single("galleryImage");
+const bannerImage = upload.single("bannerImage");
 const highlightsVideo = upload.single("highlightsVideo");
 
 // upload multiple image
@@ -53,4 +54,5 @@ export const fileUploader = {
   profileImage,
   galleryImage,
   highlightsVideo,
+  bannerImage
 };

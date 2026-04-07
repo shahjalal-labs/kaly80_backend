@@ -113,7 +113,10 @@ const updateClubProfileInDB = async (req: Request) => {
   return;
 };
 
+
+
 export const clubService = {
   setUpClubProfileInDB,
   updateClubProfileInDB,
+ 
 };

@@ -31,6 +31,8 @@ model User {
   coachProfile  CoachProfile?
   clubProfile   ClubProfile?
   scoutProfile  ScoutProfile?
+  galleries     Gallery[]
+  jobs          Job[]
 
   @@map("users")
 }
@@ -71,7 +73,6 @@ model PlayerProfile {
   dob                String
   height             String
   weight             String
-  gallery            String[]
   highlights         String[]
   bestFoot           TFoot
   position           TPosition
@@ -94,7 +95,6 @@ model CoachProfile {
   city           String
   licences       String[]
   skills         String[]
-  gallery        String[]
   lscSenior      String
   lscYouth       String
   bio            String
@@ -109,6 +109,19 @@ model CoachProfile {
   coach          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("coach_profiles")
+}
+
+model Gallery {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  title        String
+  date         String
+  galleryImage String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("galleries")
 }
 
 model ClubProfile {
@@ -153,6 +166,25 @@ model ScoutProfile {
   @@map("scout_profiles")
 }
 
+model Job {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  clubId         String          @db.ObjectId
+  position       UserRole
+  title          String
+  description    String
+  location       String
+  latitude       Float
+  longitude      Float
+  employmentType TEmploymentType
+  currency       String
+  banner         String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  club           User            @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("jobs")
+}
+
 model Otp {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
@@ -184,6 +216,12 @@ enum TFoot {
   Left
   Right
   Both
+}
+
+enum TEmploymentType {
+  Full_Time
+  Part_Time
+  Contract
 }
 
 enum TPosition {

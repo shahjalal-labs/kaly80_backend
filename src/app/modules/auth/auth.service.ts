@@ -224,6 +224,13 @@ const myProfile = async (userId: string) => {
       dob: true,
       profileImage: true,
       email: true,
+      galleries: {
+        select: {
+          title: true,
+          date: true,
+          galleryImage: true,
+        },
+      },
       playerProfile: true,
       coachProfile: true,
       scoutProfile: true,
@@ -345,22 +352,10 @@ const userLocationUpdateInDB = async (
 const addPhotoInGallery = async (req: Request) => {
   const userId = req.user.id;
   const file = req.file as Express.Multer.File | undefined;
+  const payload = req.body;
 
-  const player = await prisma.user.findUniqueOrThrow({
+  await prisma.user.findUniqueOrThrow({
     where: { id: userId },
-    select: {
-      role: true,
-      playerProfile: {
-        select: {
-          gallery: true,
-        },
-      },
-      coachProfile: {
-        select: {
-          gallery: true,
-        },
-      },
-    },
   });
 
   const processImage = async (file: Express.Multer.File, folder: string) => {
@@ -374,20 +369,12 @@ const addPhotoInGallery = async (req: Request) => {
     throw new ApiError(404, "Image is required");
   }
 
-  if (player.role === "Player") {
-    await prisma.playerProfile.update({
-      where: { userId },
-      data: {
-        gallery: [...(player.playerProfile?.gallery || []), galleryImage],
-      },
-    });
-    return;
-  }
-
-  await prisma.coachProfile.update({
-    where: { userId },
+  await prisma.gallery.create({
     data: {
-      gallery: [...(player.coachProfile?.gallery || []), galleryImage],
+      userId,
+      galleryImage,
+      title: payload.title,
+      date: payload.date,
     },
   });
 

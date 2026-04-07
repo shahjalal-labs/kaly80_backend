@@ -27,4 +27,5 @@ router.put(
   clubController.updateClubProfile,
 );
 
+
 export const clubRoutes = router;

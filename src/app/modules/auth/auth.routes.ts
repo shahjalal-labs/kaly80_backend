@@ -39,6 +39,7 @@ router.put(
   "/add-photo-to-gallery",
   auth(UserRole.Player, UserRole.Coach),
   fileUploader.galleryImage,
+  parseBodyData,
   authController.addPhotoToGallery,
 );
 
