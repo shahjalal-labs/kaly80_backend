@@ -1,4 +1,6 @@
 import catchAsync from "../../../shared/catchAsync";
+import { paginationOptions } from "../../../shared/pagination";
+import pick from "../../../shared/pick";
 import sendResponse from "../../../shared/sendResponse";
 import { jobService } from "./job.service";
 
@@ -11,7 +13,14 @@ const createNewJob = catchAsync(async (req, res) => {
   });
 });
 const jobCirculars = catchAsync(async (req, res) => {
-  const circulars = await jobService.getJobCircularFromDB(req.user.id);
+  const paginations = pick(req.query, paginationOptions);
+  const filter = pick(req.query, ["searchTerm"]);
+
+  const circulars = await jobService.getJobCircularFromDB(
+    req.user.id,
+    paginations,
+    filter,
+  );
   sendResponse(res, {
     success: true,
     statusCode: 200,

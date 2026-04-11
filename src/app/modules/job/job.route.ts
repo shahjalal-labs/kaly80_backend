@@ -22,16 +22,8 @@ router.get(
   auth(UserRole.Player, UserRole.Coach, UserRole.Scout),
   jobController.jobCirculars,
 );
-router.get(
-  "/details/:id",
-  auth(),
-  jobController.jobDetails,
-);
-router.get(
-  "/club-wise-posts",
-  auth(UserRole.Club),
-  jobController.clubJobPosts,
-);
+router.get("/details/:id", auth(), jobController.jobDetails);
+router.get("/club-wise-posts", auth(UserRole.Club), jobController.clubJobPosts);
 router.post(
   "/apply",
   auth(UserRole.Player, UserRole.Coach, UserRole.Scout),

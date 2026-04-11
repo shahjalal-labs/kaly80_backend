@@ -1,0 +1,63 @@
+### Create New Job
+
+POST {{baseUrl}}/job/create HTTP/1.1
+Authorization: {{jabir}}
+Content-Type: application/json
+
+{
+  "currency": "BDT",
+  "description": "We are looking for an experienced striker to join our squad for the upcoming season.",
+  "employmentType": "Full_Time",
+  "latitude": 23.8103,
+  "location": "Dhaka, Bangladesh",
+  "longitude": 90.4125,
+  "position": "Player",
+  "title": "Striker Needed for Premier Division"
+}
+
+
+### Get Job circulars
+
+GET {{baseUrl}}/job/circulars?page=1&limit=20&searchTerm=comp HTTP/1.1
+Authorization: {{player}}
+
+
+### Get Job Details
+
+GET {{baseUrl}}/job/details/69d487b9fd707ba402b6a512 HTTP/1.1
+Authorization: {{jabir}}
+
+
+### Get Club-Wise Job Posts
+
+GET {{baseUrl}}/job/club-wise-posts HTTP/1.1
+Authorization: {{club}}
+
+
+### Apply for a Job
+
+POST {{baseUrl}}/job/apply HTTP/1.1
+Authorization: {{player}}
+Content-Type: application/json
+
+{
+  "jobId": "69d8978990ce8ab40b811f63"
+}
+
+
+### Get All Applications for a Job
+
+GET {{baseUrl}}/job/applications/69d8978990ce8ab40b811f63 HTTP/1.1
+Authorization: {{club}}
+
+
+### Decline a Job Application
+
+DELETE {{baseUrl}}/job/application/69d89a6e90ce8ab40b811f6b HTTP/1.1
+Authorization: {{club}}
+
+
+### Accept a Job Application
+
+PATCH {{baseUrl}}/job/application/69d89a6e90ce8ab40b811f6b HTTP/1.1
+Authorization: {{club}}
