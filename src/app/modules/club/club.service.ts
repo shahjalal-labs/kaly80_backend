@@ -89,7 +89,7 @@ const updateClubProfileInDB = async (req: Request) => {
     await tx.user.update({
       where: { id: userId },
       data: {
-        profileImage: profileImage || club.profileImage,
+        // profileImage: profileImage || club.profileImage,
         fullName: payload.fullName || club.fullName,
         bio: payload.bio || club.bio,
       },
@@ -106,6 +106,7 @@ const updateClubProfileInDB = async (req: Request) => {
         members: payload.members || club.clubProfile?.members,
         year: payload.year || club.clubProfile?.year,
         playingField: payload.playingField || club.clubProfile?.playingField,
+        logo: profileImage ? profileImage : club.clubProfile?.logo,
       },
     });
   });
@@ -113,10 +114,7 @@ const updateClubProfileInDB = async (req: Request) => {
   return;
 };
 
-
-
 export const clubService = {
   setUpClubProfileInDB,
   updateClubProfileInDB,
- 
 };

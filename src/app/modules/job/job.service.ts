@@ -71,7 +71,7 @@ const getJobCircularFromDB = async (userId: string) => {
   const userLocation = user.userLocations[0];
 
   const jobs = await prisma.job.findMany({
-    where: { position: user.role },
+    where: { position: user.role, isHired: false },
     select: {
       id: true,
       title: true,
@@ -138,8 +138,120 @@ const getJobDetailsFromDB = async (jobId: string) => {
   return job;
 };
 
+const getClubWiseJobPostsFromDB = async (clubId: string) => {
+  const jobs = await prisma.job.findMany({
+    where: { clubId, isHired: false },
+    select: {
+      id: true,
+      title: true,
+      location: true,
+      club: {
+        select: {
+          clubProfile: {
+            select: {
+              clubName: true,
+            },
+          },
+        },
+      },
+      applications: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              profileImage: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: {
+          applications: true,
+        },
+      },
+    },
+  });
+
+  return jobs;
+};
+
+const createJobApplicationInDB = async (jobId: string, userId: string) => {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+  });
+
+  const job = await prisma.job.findUniqueOrThrow({
+    where: { id: jobId },
+  });
+
+  if (user.role !== job.position) {
+    throw new ApiError(400, "You are not eligible to apply for this position");
+  }
+
+  await prisma.application.create({
+    data: {
+      jobId,
+      userId,
+    },
+  });
+
+  return;
+};
+
+const getAllApplicationsForJobFromDB = async (jobId: string) => {
+  const applications = await prisma.application.findMany({
+    where: { jobId },
+    select: {
+      id: true,
+      user: {
+        select: {
+          profileImage: true,
+          fullName: true,
+        },
+      },
+    },
+  });
+  return applications;
+};
+
+const declineJobApplicationInDB = async (applicationId: string) => {
+  await prisma.application.delete({
+    where: { id: applicationId },
+  });
+
+  return;
+};
+
+const acceptJobApplicationInDB = async (applicationId: string) => {
+  const application = await prisma.application.findUniqueOrThrow({
+    where: { id: applicationId },
+    include: {
+      job: true,
+    },
+  });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.application.deleteMany({
+      where: { NOT: { id: applicationId }, jobId: application.jobId },
+    });
+
+    await tx.job.update({
+      where: { id: application.jobId },
+      data: { isHired: true },
+    });
+  });
+
+  return;
+};
+
+
 export const jobService = {
   createNewJobInDB,
   getJobCircularFromDB,
   getJobDetailsFromDB,
+  getClubWiseJobPostsFromDB,
+  createJobApplicationInDB,
+  getAllApplicationsForJobFromDB,
+  declineJobApplicationInDB,
+  acceptJobApplicationInDB,
 };

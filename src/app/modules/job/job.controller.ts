@@ -28,9 +28,60 @@ const jobDetails = catchAsync(async (req, res) => {
     data: job,
   });
 });
+const clubJobPosts = catchAsync(async (req, res) => {
+  const jobs = await jobService.getClubWiseJobPostsFromDB(req.user.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Club-wise job posts retrieved successful",
+    data: jobs,
+  });
+});
+const createApplication = catchAsync(async (req, res) => {
+  const jobId = req.body.jobId;
+  await jobService.createJobApplicationInDB(jobId, req.user.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 201,
+    message: "Job application created successfully",
+  });
+});
+const getAllApplicationsForJob = catchAsync(async (req, res) => {
+  const jobId = req.params.id;
+  const applications = await jobService.getAllApplicationsForJobFromDB(jobId);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Job applications retrieved successfully",
+    data: applications,
+  });
+});
+const declineJobApplication = catchAsync(async (req, res) => {
+  const applicationId = req.params.id;
+  await jobService.declineJobApplicationInDB(applicationId);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Job application declined successfully",
+  });
+});
+const acceptJobApplication = catchAsync(async (req, res) => {
+  const applicationId = req.params.id;
+  await jobService.acceptJobApplicationInDB(applicationId);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Job application accepted successfully",
+  });
+});
 
 export const jobController = {
   createNewJob,
   jobCirculars,
   jobDetails,
+  clubJobPosts,
+  createApplication,
+  getAllApplicationsForJob,
+  declineJobApplication,
+  acceptJobApplication,
 };

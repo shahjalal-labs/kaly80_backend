@@ -27,5 +27,30 @@ router.get(
   auth(),
   jobController.jobDetails,
 );
+router.get(
+  "/club-wise-posts",
+  auth(UserRole.Club),
+  jobController.clubJobPosts,
+);
+router.post(
+  "/apply",
+  auth(UserRole.Player, UserRole.Coach, UserRole.Scout),
+  jobController.createApplication,
+);
+router.get(
+  "/applications/:id",
+  auth(UserRole.Club),
+  jobController.getAllApplicationsForJob,
+);
+router.delete(
+  "/application/:id",
+  auth(UserRole.Club),
+  jobController.declineJobApplication,
+);
+router.patch(
+  "/application/:id",
+  auth(UserRole.Club),
+  jobController.acceptJobApplication,
+);
 
 export const jobRoutes = router;

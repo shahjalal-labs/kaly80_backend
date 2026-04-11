@@ -33,6 +33,7 @@ model User {
   scoutProfile  ScoutProfile?
   galleries     Gallery[]
   jobs          Job[]
+  applications  Application[]
 
   @@map("users")
 }
@@ -176,13 +177,27 @@ model Job {
   latitude       Float
   longitude      Float
   employmentType TEmploymentType
+  isHired        Boolean         @default(false)
   currency       String
   banner         String
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   club           User            @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  applications   Application[]
 
   @@map("jobs")
+}
+
+model Application {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  jobId     String   @db.ObjectId
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("applications")
 }
 
 model Otp {
