@@ -3,8 +3,6 @@ import { uploadInSpace } from "../../../helpers/uploadInSpace";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { getDistanceInKm } from "../../../helpers/getDistance";
-import { paginationHelper, TOptions } from "../../../shared/pagination";
-import { Prisma } from "@prisma/client";
 
 const createNewJobInDB = async (req: Request) => {
   const clubId = req.user.id;
@@ -48,16 +46,7 @@ const createNewJobInDB = async (req: Request) => {
   return;
 };
 
-const getJobCircularFromDB = async (
-  userId: string,
-  paginations: TOptions,
-
-  filter?: {
-    searchTerm?: string;
-  },
-) => {
-  const { page, skip, limit } = paginationHelper(paginations);
-
+const getJobCircularFromDB = async (userId: string) => {
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: userId },
     select: {
@@ -81,66 +70,25 @@ const getJobCircularFromDB = async (
 
   const userLocation = user.userLocations[0];
 
-  const whereClause: Prisma.JobWhereInput = {
-    position: user.role,
-    isHired: false,
-  };
-
-  const andClause: Prisma.JobWhereInput[] = [];
-
-  const searchTerm = filter?.searchTerm?.trim();
-
-  if (searchTerm)
-    andClause.push({
-      OR: [
-        {
-          title: {
-            contains: searchTerm,
-            mode: "insensitive",
-          },
-        },
-        {
-          description: {
-            contains: searchTerm,
-            mode: "insensitive",
-          },
-        },
-      ],
-    });
-
-  if (andClause.length) whereClause.AND = andClause;
-
-  const [jobs, total] = await Promise.all([
-    prisma.job.findMany({
-      where: whereClause,
-      skip,
-      take: limit,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        location: true,
-        latitude: true,
-        longitude: true,
-        club: {
-          select: {
-            clubProfile: {
-              select: {
-                clubName: true,
-              },
+  const jobs = await prisma.job.findMany({
+    where: { position: user.role, isHired: false },
+    select: {
+      id: true,
+      title: true,
+      location: true,
+      latitude: true,
+      longitude: true,
+      club: {
+        select: {
+          clubProfile: {
+            select: {
+              clubName: true,
             },
           },
         },
       },
-      orderBy: {
-        id: "desc",
-      },
-    }),
-
-    prisma.job.count({
-      where: whereClause,
-    }),
-  ]);
+    },
+  });
 
   const jobsWithDistance = jobs
     .map((job) => {
@@ -160,15 +108,7 @@ const getJobCircularFromDB = async (
     .sort((a, b) => a.distanceInKm - b.distanceInKm)
     .map(({ latitude, longitude, distanceInKm, ...job }) => job);
 
-  return {
-    meta: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-    data: jobsWithDistance,
-  };
+  return jobsWithDistance;
 };
 
 const getJobDetailsFromDB = async (jobId: string) => {
