@@ -1,0 +1,76 @@
+### login user (email password)
+
+POST {{baseUrl}}/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "jabirbinhasan@gmail.com",
+  "password": "abc123@!"
+}
+
+
+### fetch my profile
+
+GET {{baseUrl}}/auth/profile HTTP/1.1
+Authorization: {{jabir}}
+
+
+### update my profile
+
+PATCH {{baseUrl}}/auth/profile HTTP/1.1
+Authorization: {{john}}
+Content-Type: application/json
+
+{
+  "fullName": "Jabir Al Imran",
+  "profession": "teacher"
+}
+
+
+### change password
+
+PATCH {{baseUrl}}/auth/change-password HTTP/1.1
+Authorization: {{john}}
+
+{
+  "newPassword": "Aw32@320",
+  "oldPassword": "Aw32@320"
+}
+
+
+### send forgot pass otp
+
+POST {{baseUrl}}/auth/send-forgot-otp HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com"
+}
+
+
+### verify forgot pass otp
+
+POST {{baseUrl}}/auth/verify-forgot-otp HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "otp": "7143"
+}
+
+
+### reset password
+
+PATCH {{baseUrl}}/auth/reset-password HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Y2RmNjUzMzI2NjU2NDIxM2M0NzZkMyIsImVtYWlsIjoiam9obi5kb2VAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzUxMDU5MDAsImV4cCI6MTc3NjQwMTkwMH0.av6bN2SRMxhPof8KjcvjuGS-7jKSsEwNETPgDUTSsrU
+Content-Type: application/json
+
+{
+  "newPassword": "Aw32@320"
+}
+
+
+### delete account
+
+DELETE {{baseUrl}}/auth/delete-account HTTP/1.1
+Authorization: {{john}}

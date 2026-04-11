@@ -1,0 +1,54 @@
+### send test notification
+
+POST {{baseUrl}}/notify/send-test HTTP/1.1
+Content-Type: application/json
+
+{
+  "body": "This is a test notification from postman",
+  "metaData": {
+    "action": "meta action",
+    "actionId": "12345abcde",
+    "extra": {
+      "deeplink": "myapp://friends/requests",
+      "priority": "high",
+      "sound": "ping"
+    },
+    "messagePreview": "meta message preview"
+  },
+  "notificationChannel": "BOTH",
+  "receiverId": "69d8978990ce8ab40b811f63",
+  "senderId": "69d4d168435b7b9eb3f426e9",
+  "title": "Send test notification",
+  "type": "SYSTEM"
+}
+
+
+### my notifications
+
+# / isRead=> true, false, all
+
+GET {{baseUrl}}/notify/my?page=1&limit=20&isRead=all HTTP/1.1
+Authorization: {{jabir}}
+
+
+### get single notification and marks as read
+
+GET {{baseUrl}}/notify/single/69d89a6e90ce8ab40b811f6b HTTP/1.1
+Authorization: {{jabir}}
+
+
+### get notification unread count
+
+GET {{baseUrl}}/notify/unread-count HTTP/1.1
+Authorization: {{jabir}}
+
+
+### mark all as read or unread
+
+PATCH {{baseUrl}}/notify/mark-all HTTP/1.1
+Authorization: {{jabir}}
+Content-Type: application/json
+
+{
+  "isRead": false
+}

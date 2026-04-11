@@ -1,0 +1,36 @@
+### create user
+
+POST {{baseUrl}}/users/create HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "jabirbinhasan@gmail.com",
+  "fullName": "Jabir Bin Hasan",
+  "password": "abc123@!",
+  "role": "Player"
+}
+
+
+### signup verification
+
+POST {{baseUrl}}/users/signup-verification HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "jabirbinhasan@gmail.com",
+  "otp": "2348"
+}
+
+
+### get user detais
+
+# user/:userId
+
+GET {{baseUrl}}/users/69b28477dd104bd62ad45b4b HTTP/1.1
+Authorization: {{john}}
+
+
+### get all users | admin
+
+GET {{baseUrl}}/users/all HTTP/1.1
+Authorization: {{john}}

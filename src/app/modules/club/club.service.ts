@@ -10,7 +10,13 @@ const setUpClubProfileInDB = async (req: Request) => {
 
   const club = await prisma.user.findUniqueOrThrow({
     where: { id: userId, role: "Club" },
-    include: { clubProfile: true },
+    select: {
+      clubProfile: {
+        select: {
+          id: true,
+        },
+      },
+    },
   });
 
   if (club.clubProfile) {
