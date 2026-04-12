@@ -78,6 +78,7 @@ const getJobCircularFromDB = async (userId: string) => {
       location: true,
       latitude: true,
       longitude: true,
+      currency: true,
       club: {
         select: {
           clubProfile: {
@@ -111,7 +112,7 @@ const getJobCircularFromDB = async (userId: string) => {
   return jobsWithDistance;
 };
 
-const getJobDetailsFromDB = async (jobId: string) => {
+const getJobDetailsFromDB = async (jobId: string, userId: string) => {
   const job = await prisma.job.findUniqueOrThrow({
     where: { id: jobId },
     select: {
@@ -135,7 +136,11 @@ const getJobDetailsFromDB = async (jobId: string) => {
     },
   });
 
-  return job;
+  const isApplicable = await prisma.application.findUnique({
+    where: { jobId_userId: { jobId, userId } },
+  });
+
+  return { ...job, isApplicable };
 };
 
 const getClubWiseJobPostsFromDB = async (clubId: string) => {
@@ -186,6 +191,13 @@ const createJobApplicationInDB = async (jobId: string, userId: string) => {
 
   if (user.role !== job.position) {
     throw new ApiError(400, "You are not eligible to apply for this position");
+  }
+
+  const existingApplication = await prisma.application.findUnique({
+    where: { jobId_userId: { jobId, userId } },
+  });
+  if (existingApplication) {
+    throw new ApiError(400, "You have already applied for this job");
   }
 
   await prisma.application.create({
@@ -243,7 +255,6 @@ const acceptJobApplicationInDB = async (applicationId: string) => {
 
   return;
 };
-
 
 export const jobService = {
   createNewJobInDB,
