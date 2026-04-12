@@ -129,6 +129,7 @@ const getJobDetailsFromDB = async (jobId: string, userId: string) => {
           clubProfile: {
             select: {
               clubName: true,
+              userId: true,
             },
           },
         },
@@ -140,7 +141,9 @@ const getJobDetailsFromDB = async (jobId: string, userId: string) => {
     where: { jobId_userId: { jobId, userId } },
   });
 
-  return { ...job, isApplicable };
+  const isOwner = job.club.clubProfile?.userId === userId;
+
+  return { ...job, isApplicable: !!isApplicable, isOwner };
 };
 
 const getClubWiseJobPostsFromDB = async (clubId: string) => {
