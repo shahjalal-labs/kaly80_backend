@@ -20,7 +20,7 @@ const jobCirculars = catchAsync(async (req, res) => {
   });
 });
 const jobDetails = catchAsync(async (req, res) => {
-  const job = await jobService.getJobDetailsFromDB(req.params.id);
+  const job = await jobService.getJobDetailsFromDB(req.params.id, req.user.id);
   sendResponse(res, {
     success: true,
     statusCode: 200,
