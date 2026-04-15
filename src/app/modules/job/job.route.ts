@@ -32,6 +32,11 @@ router.get(
   auth(UserRole.Club),
   jobController.clubJobPosts,
 );
+router.get(
+  "/club-wise-hired",
+  auth(UserRole.Club),
+  jobController.clubJobHiredPosts,
+);
 router.post(
   "/apply",
   auth(UserRole.Player, UserRole.Coach, UserRole.Scout),

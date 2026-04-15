@@ -114,7 +114,34 @@ const updateClubProfileInDB = async (req: Request) => {
   return;
 };
 
+const getAllClubsFromDB = async (search?: string) => {
+  const clubs = await prisma.user.findMany({
+    where: {
+      role: "Club",
+      ...(search && {
+        clubProfile: { clubName: { contains: search, mode: "insensitive" } },
+      }),
+    },
+    select: {
+      jobs: {
+        where: {
+          isHired: true,
+          position: "Coach",
+        },
+      },
+      clubProfile: {
+        select: {
+          clubName: true,
+          members: true,
+        },
+      },
+    },
+  });
+
+  return clubs
+};
+
 export const clubService = {
   setUpClubProfileInDB,
-  updateClubProfileInDB,
+  updateClubProfileInDB
 };

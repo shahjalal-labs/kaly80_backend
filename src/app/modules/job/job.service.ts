@@ -259,6 +259,39 @@ const acceptJobApplicationInDB = async (applicationId: string) => {
   return;
 };
 
+const getClubWiseHiredPostsFromDB = async (clubId: string) => {
+  const jobs = await prisma.job.findMany({
+    where: { clubId, isHired: true },
+    select: {
+      id: true,
+      title: true,
+      location: true,
+      club: {
+        select: {
+          clubProfile: {
+            select: {
+              clubName: true,
+            },
+          },
+        },
+      },
+      applications: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              fullName: true,
+              profileImage: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return jobs;
+};
+
 export const jobService = {
   createNewJobInDB,
   getJobCircularFromDB,
@@ -268,4 +301,5 @@ export const jobService = {
   getAllApplicationsForJobFromDB,
   declineJobApplicationInDB,
   acceptJobApplicationInDB,
+  getClubWiseHiredPostsFromDB,
 };

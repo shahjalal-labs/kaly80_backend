@@ -37,6 +37,15 @@ const clubJobPosts = catchAsync(async (req, res) => {
     data: jobs,
   });
 });
+const clubJobHiredPosts = catchAsync(async (req, res) => {
+  const jobs = await jobService.getClubWiseHiredPostsFromDB(req.user.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Club-wise hired job posts retrieved successful",
+    data: jobs,
+  });
+});
 const createApplication = catchAsync(async (req, res) => {
   const jobId = req.body.jobId;
   await jobService.createJobApplicationInDB(jobId, req.user.id);
@@ -80,6 +89,7 @@ export const jobController = {
   jobCirculars,
   jobDetails,
   clubJobPosts,
+  clubJobHiredPosts,
   createApplication,
   getAllApplicationsForJob,
   declineJobApplication,
