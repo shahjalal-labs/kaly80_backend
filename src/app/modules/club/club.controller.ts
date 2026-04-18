@@ -19,8 +19,18 @@ const updateClubProfile = catchAsync(async (req, res) => {
     message: "Profile updated successful",
   });
 });
+const allPlayers = catchAsync(async (req, res) => {
+  const players = await clubService.getAllPlayersOfClubFromDB(req.user.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Players retrieved successful",
+    data: players,
+  });
+});
 
 export const clubController = {
   setupClubProfile,
   updateClubProfile,
+  allPlayers,
 };

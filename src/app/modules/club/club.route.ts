@@ -26,6 +26,6 @@ router.put(
   // validateRequest(clubValidation.clubValidationSchema),
   clubController.updateClubProfile,
 );
-
+router.get("/all-players", auth(UserRole.Club), clubController.allPlayers);
 
 export const clubRoutes = router;

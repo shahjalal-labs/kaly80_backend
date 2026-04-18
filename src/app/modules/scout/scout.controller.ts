@@ -19,8 +19,17 @@ const updateScoutProfile = catchAsync(async (req, res) => {
     message: "Profile updated successful",
   });
 });
+const createReport = catchAsync(async (req, res) => {
+  await scoutService.createPlayerReportInDB(req);
+  sendResponse(res, {
+    success: true,
+    statusCode: 201,
+    message: "Report created successful",
+  });
+});
 
 export const scoutController = {
     setupScoutProfile,
     updateScoutProfile,
+    createReport,
 }

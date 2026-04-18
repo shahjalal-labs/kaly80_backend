@@ -27,4 +27,13 @@ router.put(
   scoutController.updateScoutProfile,
 );
 
+router.post(
+  "/create-report",
+  auth(UserRole.Scout),
+  fileUploader.reportImage,
+  parseBodyData,
+    validateRequest(scoutValidation.playerStatsSchema),
+  scoutController.createReport,
+);
+
 export const scoutRoutes = router;

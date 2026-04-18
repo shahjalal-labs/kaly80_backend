@@ -138,10 +138,40 @@ const getAllClubsFromDB = async (search?: string) => {
     },
   });
 
-  return clubs
+  return clubs;
+};
+
+const getAllPlayersOfClubFromDB = async (clubId: string) => {
+  const players = await prisma.job.findMany({
+    where: { position: "Player", isHired: true, clubId },
+    select: {
+      applications: {
+        select: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              profileImage: true,
+              playerProfile: {
+                select: {
+                  height: true,
+                  weight: true,
+                  bestFoot: true,
+                  dob: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  return players;
 };
 
 export const clubService = {
   setUpClubProfileInDB,
-  updateClubProfileInDB
+  updateClubProfileInDB,
+  getAllClubsFromDB,
+  getAllPlayersOfClubFromDB,
 };

@@ -125,7 +125,53 @@ const updateScoutProfileInDB = async (req: Request) => {
   return;
 };
 
+const createPlayerReportInDB = async (req: Request) => {
+  const file = req.file as Express.Multer.File;
+  const payload = req.body;
+  const scoutId = req.user.id;
+
+  const player = await prisma.user.findUniqueOrThrow({
+    where: { id: payload.playerId, role: "Player" },
+    select: {
+      id: true,
+      receiver: true,
+    },
+  });
+
+  if (player.receiver.length > 0) {
+    throw new ApiError(404, "Player already reported");
+  }
+
+  const processImage = async (file: Express.Multer.File, folder: string) => {
+    if (!file) return null;
+    return uploadInSpace(file, `courses/${folder}`);
+  };
+
+  const reportUrl = file ? await processImage(file, "reportUrl") : null;
+
+  if (!reportUrl) {
+    throw new ApiError(404, "Report file is required");
+  }
+
+  await prisma.report.create({
+    data: {
+      scoutId,
+      playerId: player.id,
+      pace: payload.pace,
+      shooting: payload.shooting,
+      passing: payload.passing,
+      dribbling: payload.dribbling,
+      defending: payload.defending,
+      physical: payload.physical,
+      reportUrl,
+    },
+  });
+
+  return;
+};
+
 export const scoutService = {
   setUpScoutProfileInDB,
   updateScoutProfileInDB,
+  createPlayerReportInDB,
 };

@@ -34,6 +34,9 @@ model User {
   galleries     Gallery[]
   jobs          Job[]
   applications  Application[]
+  matches       Match[]
+  reviewer      Report[]       @relation("givenReport")
+  receiver      Report[]       @relation("receivedReport")
 
   @@map("users")
 }
@@ -199,6 +202,36 @@ model Application {
 
   @@unique([jobId, userId])
   @@map("applications")
+}
+
+model Match {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  clubId String @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  club      User     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("matches")
+}
+
+model Report {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  scoutId   String   @db.ObjectId
+  playerId  String   @db.ObjectId
+  pace      Int
+  shooting  Int
+  passing   Int
+  dribbling Int
+  defending Int
+  physical  Int
+  reportUrl String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  scout     User     @relation("givenReport", fields: [scoutId], references: [id], onDelete: Cascade)
+  player    User     @relation("receivedReport", fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
 }
 
 model Otp {
