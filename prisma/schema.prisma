@@ -8,35 +8,37 @@ generator client {
 }
 
 model User {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  fullName      String
-  email         String         @unique
-  password      String
-  fcmToken      String?
-  appleId       String?
-  profileImage  String?
-  profession    String?
-  bio           String?
-  phoneNumber   String?
-  gender        Gender?
-  dob           DateTime?
-  address       String?
-  role          UserRole
-  isSetup       Boolean        @default(false)
-  status        UserStatus     @default(Active)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  userLocations UserLocation[]
-  playerProfile PlayerProfile?
-  coachProfile  CoachProfile?
-  clubProfile   ClubProfile?
-  scoutProfile  ScoutProfile?
-  galleries     Gallery[]
-  jobs          Job[]
-  applications  Application[]
-  matches       Match[]
-  reviewer      Report[]       @relation("givenReport")
-  receiver      Report[]       @relation("receivedReport")
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  fullName       String
+  email          String         @unique
+  password       String
+  fcmToken       String?
+  appleId        String?
+  profileImage   String?
+  profession     String?
+  bio            String?
+  phoneNumber    String?
+  gender         Gender?
+  dob            DateTime?
+  address        String?
+  role           UserRole
+  isSetup        Boolean        @default(false)
+  status         UserStatus     @default(Active)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  userLocations  UserLocation[]
+  playerProfile  PlayerProfile?
+  coachProfile   CoachProfile?
+  clubProfile    ClubProfile?
+  scoutProfile   ScoutProfile?
+  galleries      Gallery[]
+  jobs           Job[]
+  applications   Application[]
+  matches        Match[]
+  reviewer       Report[]       @relation("givenReport")
+  receiver       Report[]       @relation("receivedReport")
+  matchRequests  MatchRequest[]
+  confirmMatches ConfirmMatch[]
 
   @@map("users")
 }
@@ -205,14 +207,51 @@ model Application {
 }
 
 model Match {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  clubId String @db.ObjectId
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  clubId         String         @db.ObjectId
+  matchType      String
+  ageCategory    String
+  date           String
+  time           String
+  location       String
+  latitude       Float
+  longitude      Float
+  ticketPrice    Float
+  additionalInfo String?
+  isActive       Boolean        @default(false)
+  isTeamSelect   Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  club           User           @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  matchRequests  MatchRequest[]
+  confirmMatches ConfirmMatch[]
 
+  @@map("matches")
+}
+
+model MatchRequest {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  clubId     String   @db.ObjectId
+  matchId    String   @db.ObjectId
+  isAccepted Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  club       User     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  match      Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("match_requests")
+}
+
+model ConfirmMatch {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  matchId   String   @db.ObjectId
+  clubId    String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   club      User     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  @@map("matches")
+  @@map("confirm_matches")
 }
 
 model Report {
