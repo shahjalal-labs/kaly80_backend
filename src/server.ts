@@ -1,7 +1,8 @@
 import { Server } from "http";
 import app from "./app";
 import config from "./config";
-import { setupWebSocketServer } from "./app/socket/socket.service";
+import { setupWebSocketServer } from "./app/modules/socket/socket.controller";
+
 
 async function main() {
   const server: Server = app.listen(config.port, () => {

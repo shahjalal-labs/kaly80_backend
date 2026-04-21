@@ -55,6 +55,15 @@ const confirmedMatches = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const confirmedMatch = catchAsync(async (req, res) => {
+  const result = await matchService.getConfirmedMatchFromDB(req.params.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Confirmed match retrieved successfully",
+    data: result,
+  });
+});
 
 export const matchController = {
   createMatchRequest,
@@ -63,4 +72,5 @@ export const matchController = {
   requests,
   acceptRejectRequest,
   confirmedMatches,
+  confirmedMatch,
 };

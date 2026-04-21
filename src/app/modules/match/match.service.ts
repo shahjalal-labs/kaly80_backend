@@ -7,6 +7,7 @@ const createMatchRequestInDB = async (clubId: string, payload: Match) => {
     data: {
       ...payload,
       clubId,
+      isActive: true,
     },
   });
 
@@ -162,14 +163,71 @@ const getConfirmedMatchesFromDB = async (clubId: string) => {
       },
     },
     select: {
+      location: true,
+      date: true,
+      time: true,
+      matchType: true,
+      ageCategory: true,
       confirmMatches: {
         select: {
           id: true,
+          club: {
+            select: {
+              clubProfile: {
+                select: {
+                  clubName: true,
+                  logo: true,
+                },
+              },
+            },
+          },
         },
       },
     },
   });
   return matches;
+};
+const getConfirmedMatchFromDB = async (confirmMatchId: string) => {
+  const match = await prisma.confirmMatch.findUnique({
+    where: { id: confirmMatchId },
+    select: {
+      id: true,
+      match: {
+        select: {
+          location: true,
+          date: true,
+          time: true,
+          matchType: true,
+          ageCategory: true,
+          ticketPrice: true,
+          additionalInfo: true,
+          latitude: true,
+          longitude: true,
+          club: {
+            select: {
+              clubProfile: {
+                select: {
+                  clubName: true,
+                  logo: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      club: {
+        select: {
+          clubProfile: {
+            select: {
+              clubName: true,
+              logo: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  return match;
 };
 
 export const matchService = {
@@ -179,4 +237,5 @@ export const matchService = {
   getMatchRequestsFromDB,
   acceptRejectMatchRequest,
   getConfirmedMatchesFromDB,
+  getConfirmedMatchFromDB,
 };

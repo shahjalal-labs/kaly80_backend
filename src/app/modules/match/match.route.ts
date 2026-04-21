@@ -40,6 +40,11 @@ router.get(
   auth(UserRole.Club),
   matchController.confirmedMatches,
 );
+router.get(
+  "/confirmed/:id",
+  auth(UserRole.Club),
+  matchController.confirmedMatch,
+);
 
 
 
