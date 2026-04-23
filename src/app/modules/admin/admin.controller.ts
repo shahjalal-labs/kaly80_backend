@@ -38,6 +38,39 @@ const allScouts = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const allMatches = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const result = await adminService.getAllMatchesFromDB(page, limit);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "All matches retrieved successfully",
+    data: result,
+  });
+});
+const allClubs = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const result = await adminService.getAllClubsFromDB(page, limit);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "All clubs retrieved successfully",
+    data: result,
+  });
+});
+const allJobs = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const result = await adminService.getAllJobsFromDB(page, limit);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "All jobs retrieved successfully",
+    data: result,
+  });
+});
 const playerDetails = catchAsync(async (req, res) => {
   const result = await adminService.getPlayerDetailsFromDB(req.params.id);
   sendResponse(res, {
@@ -65,6 +98,33 @@ const scoutDetails = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const jobDetails = catchAsync(async (req, res) => {
+  const result = await adminService.getJobDetailsFromDB(req.params.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Job details retrieved successfully",
+    data: result,
+  });
+});
+const clubDetails = catchAsync(async (req, res) => {
+  const result = await adminService.getClubDetailsFromDB(req.params.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Club details retrieved successfully",
+    data: result,
+  });
+});
+const matchDetails = catchAsync(async (req, res) => {
+  const result = await adminService.getMatchDetailsFromDB(req.params.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Match details retrieved successfully",
+    data: result,
+  });
+});
 const deleteUser = catchAsync(async (req, res) => {
   await adminService.delteUserFromDB(req.params.id);
   sendResponse(res, {
@@ -82,4 +142,10 @@ export const adminController = {
   coachDetails,
   scoutDetails,
   deleteUser,
+  allMatches,
+  allClubs,
+  allJobs,
+  jobDetails,
+  clubDetails,
+  matchDetails,
 };

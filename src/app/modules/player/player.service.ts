@@ -170,8 +170,58 @@ const addHighlightsVideo = async (req: Request) => {
   return;
 };
 
+const getAllPlayersFromDB = async (
+  category?: string,
+  age?: any,
+  location?: string,
+) => {
+  const players = await prisma.user.findMany({
+    where: {
+      role: "Player",
+      ...(category && {
+        playerProfile: {
+          category: { contains: category, mode: "insensitive" },
+        },
+      }),
+      ...(age && { playerProfile: { age: { equals: age } } }),
+      ...(location && { address: { contains: location, mode: "insensitive" } }),
+    },
+    select: {
+      id: true,
+      fullName: true,
+      profileImage: true,
+      address: true,
+      playerProfile: {
+        select: {
+          position: true,
+          bestFoot: true,
+          category: true,
+          bio: true,
+          dob: true,
+          height: true,
+          weight: true,
+          playerCard: true,
+        },
+      },
+     
+    },
+  });
+
+  return players;
+};
+
+const getPlayerDetailsById = async (playerId: string) => {
+  const player = await prisma.user.findUniqueOrThrow({
+    where: { id: playerId, role: "Player" },
+    include: { playerProfile: true,  receiver: true, galleries: true},
+  });
+  return player;
+};
+
 export const playerService = {
   setUpPlayerProfileInDB,
   updatePlayerProfileInDB,
   addHighlightsVideo,
+  getAllPlayersFromDB,
+  getPlayerDetailsById,
 };

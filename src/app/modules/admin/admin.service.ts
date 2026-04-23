@@ -177,7 +177,173 @@ const getAllScoutsFromDB = async (
     scouts,
   };
 };
+const getAllMatchesFromDB = async (page: number = 1, limit: number = 10) => {
+  const totalMatches = await prisma.confirmMatch.count({});
+  const filteredMatchesCount = await prisma.confirmMatch.count({});
+  const totalPages = Math.ceil(filteredMatchesCount / limit);
 
+  const matches = await prisma.confirmMatch.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      match: {
+        select: {
+          matchType: true,
+          date: true,
+          ageCategory: true,
+          location: true,
+          ticketPrice: true,
+          club: {
+            select: {
+              clubProfile: {
+                select: {
+                  clubName: true,
+                  logo: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      club: {
+        select: {
+          clubProfile: {
+            select: {
+              clubName: true,
+              logo: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return {
+    meta: {
+      totalMatches,
+      filteredMatches: filteredMatchesCount,
+      totalPages,
+      currentPage: page,
+    },
+    matches,
+  };
+};
+const getAllClubsFromDB = async (page: number = 1, limit: number = 10) => {
+  const totalClubs = await prisma.user.count({ where: { role: "Club" } });
+  const filteredClubsCount = await prisma.user.count({
+    where: { role: "Club" },
+  });
+  const totalPages = Math.ceil(filteredClubsCount / limit);
+
+  const clubs = await prisma.user.findMany({
+    where: { role: "Club" },
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      clubProfile: {
+        select: {
+          clubName: true,
+          location: true,
+          members: true,
+          won: true,
+          lost: true,
+          playingField: true,
+          socialLinks: true,
+          bio: true,
+          year: true,
+        },
+      },
+    },
+  });
+
+  return {
+    meta: {
+      totalClubs,
+      filteredClubs: filteredClubsCount,
+      totalPages,
+      currentPage: page,
+    },
+    clubs,
+  };
+};
+const getAllJobsFromDB = async (page: number = 1, limit: number = 10) => {
+  const totalJobs = await prisma.job.count();
+  const filteredJobsCount = await prisma.job.count();
+  const totalPages = Math.ceil(filteredJobsCount / limit);
+
+  const jobs = await prisma.job.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      title: true,
+      position: true,
+      location: true,
+      currency: true,
+      employmentType: true,
+      createdAt: true,
+      club: {
+        select: {
+          clubProfile: {
+            select: {
+              clubName: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return {
+    meta: {
+      totalJobs,
+      filteredJobs: filteredJobsCount,
+      totalPages,
+      currentPage: page,
+    },
+    jobs,
+  };
+};
+
+const getJobDetailsFromDB = async (jobId: string) => {
+  const job = await prisma.job.findUniqueOrThrow({
+    where: { id: jobId },
+    include: {
+      club: {
+        select: {
+          clubProfile: {
+            select: {
+              clubName: true,
+            },
+          },
+        },
+      },
+      applications: {
+        select: {
+          user: {
+            select: {
+              fullName: true,
+              profileImage: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return job;
+};
 const getPlayerDetailsFromDB = async (playerId: string) => {
   const player = await prisma.user.findUniqueOrThrow({
     where: { id: playerId, role: "Player" },
@@ -208,13 +374,75 @@ const getScoutDetailsFromDB = async (scoutId: string) => {
 
   return scout;
 };
+const getClubDetailsFromDB = async (clubId: string) => {
+  const club = await prisma.user.findUniqueOrThrow({
+    where: { id: clubId, role: "Club" },
+    include: {
+      clubProfile: true,
+      jobs: {
+        select: {
+          title: true,
+          position: true,
+        },
+      },
+    },
+    omit: {
+      fcmToken: true,
+      password: true,
+      updatedAt: true,
+      appleId: true,
+      isSetup: true,
+      role: true,
+    },
+  });
 
+  return club;
+};
+
+const getMatchDetailsFromDB = async (matchId: string) => {
+  const match = await prisma.confirmMatch.findUniqueOrThrow({
+    where: { id: matchId },
+    include: {
+      match: {
+        select: {
+          matchType: true,
+          ageCategory: true,
+          ticketPrice: true,
+          time: true,
+          date: true,
+          location: true,
+          club: {
+            select: {
+              clubProfile: {
+                select: {
+                  clubName: true,
+                  logo: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      club: {
+        select: {
+          clubProfile: {
+            select: {
+              clubName: true,
+              logo: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return match;
+};
 const delteUserFromDB = async (userId: string) => {
   await prisma.user.delete({
     where: { id: userId },
   });
-
-  return
+  return;
 };
 
 export const adminService = {
@@ -225,4 +453,10 @@ export const adminService = {
   getCoachDetailsFromDB,
   getScoutDetailsFromDB,
   delteUserFromDB,
+  getAllMatchesFromDB,
+  getAllClubsFromDB,
+  getAllJobsFromDB,
+  getJobDetailsFromDB,
+  getClubDetailsFromDB,
+  getMatchDetailsFromDB,
 };

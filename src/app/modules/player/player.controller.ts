@@ -27,9 +27,31 @@ const addHighlightsVideo = catchAsync(async (req, res) => {
     message: "Highlights video added successful",
   });
 });
+const allPlayers = catchAsync(async (req, res) => {
+  const players = await playerService.getAllPlayersFromDB(req.query.category as string, req.query.age as any, req.query.location as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Players retrieved successful",
+    data: players,
+  });
+});
+const player = catchAsync(async (req, res) => {
+  const player = await playerService.getPlayerDetailsById(req.params.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Player retrieved successful",
+    data: player,
+  });
+});
+
+
 
 export const playerController = {
   setupPlayerProfile,
   updatePlayerProfile, 
   addHighlightsVideo,
+  allPlayers,
+  player,
 };

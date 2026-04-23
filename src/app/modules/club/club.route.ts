@@ -27,5 +27,7 @@ router.put(
   clubController.updateClubProfile,
 );
 router.get("/all-players", auth(UserRole.Club), clubController.allPlayers);
+router.get("/all", auth(), clubController.allClubs);
+router.get("/details/:id", auth(), clubController.clubDetails);
 
 export const clubRoutes = router;

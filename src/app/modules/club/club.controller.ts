@@ -28,9 +28,29 @@ const allPlayers = catchAsync(async (req, res) => {
     data: players,
   });
 });
+const allClubs = catchAsync(async (req, res) => {
+  const clubs = await clubService.getAllClubsFromDB(req.query.search as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Clubs retrieved successful",
+    data: clubs,
+  });
+});
+const clubDetails = catchAsync(async (req, res) => {
+  const club = await clubService.getClubDetailsById(req.params.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Club retrieved successful",
+    data: club,
+  });
+});
 
 export const clubController = {
   setupClubProfile,
   updateClubProfile,
   allPlayers,
+  allClubs,
+  clubDetails,
 };

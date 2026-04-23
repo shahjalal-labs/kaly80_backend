@@ -123,14 +123,17 @@ const getAllClubsFromDB = async (search?: string) => {
       }),
     },
     select: {
-      jobs: {
-        where: {
-          isHired: true,
-          position: "Coach",
+      _count: {
+        select: {
+          jobs: {
+            where: { position: "Player", isHired: true },
+          },
         },
       },
       clubProfile: {
         select: {
+          logo: true,
+          won: true,
           clubName: true,
           members: true,
         },
@@ -169,9 +172,35 @@ const getAllPlayersOfClubFromDB = async (clubId: string) => {
   return players;
 };
 
+const getClubDetailsById = async (clubId: string) => {
+  const club = await prisma.user.findUniqueOrThrow({
+    where: { id: clubId, role: "Club" },
+    omit: {
+      password: true,
+      fcmToken: true,
+      appleId:true,
+      isSetup:true,
+      role:true,
+      status:true,
+      createdAt:true,
+      updatedAt:true,
+      bio:true
+    },
+    include: { clubProfile: {
+      omit: {
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+      }
+    } },
+  });
+  return club;
+};
+
 export const clubService = {
   setUpClubProfileInDB,
   updateClubProfileInDB,
   getAllClubsFromDB,
   getAllPlayersOfClubFromDB,
+  getClubDetailsById,
 };

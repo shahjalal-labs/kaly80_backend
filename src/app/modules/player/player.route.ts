@@ -32,5 +32,15 @@ router.put(
   fileUploader.highlightsVideo,
   playerController.addHighlightsVideo
 );
+router.get(
+  "/all",
+  auth(),
+  playerController.allPlayers
+);
+router.get(
+  "/details/:id",
+  auth(),
+  playerController.player
+);
 
 export const playerRoutes = router;
