@@ -26,4 +26,9 @@ router.put(
   coachController.updateCoachProfile,
 );
 
+router.get(
+  "/all",
+  coachController.allCoaches,
+);
+
 export const coachRoutes = router;

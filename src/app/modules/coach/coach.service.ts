@@ -131,7 +131,40 @@ const updateCoachProfileInDB = async (req: Request) => {
   return;
 };
 
+const getAllCoachesFromDB = async () => {
+  const coaches = await prisma.user.findMany({
+    where: { role: "Coach" },
+    select: {
+      id: true,
+      fullName: true,
+      profileImage: true,
+      coachProfile: {
+        omit: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          bio:true,
+          dob:true,
+          skills:true,
+          licences:true,
+          lscSenior:true,
+          lscYouth:true,       
+          expCertificate:true
+
+        },
+      },
+      receiver: {
+        omit: {
+          playerId: true,
+        },
+      },
+    },
+  });
+  return coaches;
+};
+
 export const coachService = {
   setUpCoachProfileInDB,
   updateCoachProfileInDB,
+  getAllCoachesFromDB,
 };

@@ -123,6 +123,7 @@ const getAllClubsFromDB = async (search?: string) => {
       }),
     },
     select: {
+      id:true,
       _count: {
         select: {
           jobs: {

@@ -133,6 +133,37 @@ const deleteUser = catchAsync(async (req, res) => {
     message: "User deleted successfully",
   });
 });
+const dashboardStats = catchAsync(async (req, res) => {
+  const stats = await adminService.getDashboardStatsFromDB();
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Dashboard stats retrieved successfully",
+    data: stats,
+  });
+});
+const allUsers = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const result = await adminService.getAllUsersFromDB(page, limit);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "All users retrieved successfully",
+    data: result,
+  });
+});
+
+const userGrowthChartData = catchAsync(async (req, res) => {
+  const type = (req.query.type as "weekly" | "monthly" | "daily") || "daily";
+  const result = await adminService.getUserGrowthChartData(type);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "User growth chart data retrieved successfully",
+    data: result,
+  });
+});
 
 export const adminController = {
   allPlayers,
@@ -148,4 +179,7 @@ export const adminController = {
   jobDetails,
   clubDetails,
   matchDetails,
+  dashboardStats,
+  allUsers,
+  userGrowthChartData,
 };

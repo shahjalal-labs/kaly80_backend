@@ -83,6 +83,15 @@ const acceptJobApplication = catchAsync(async (req, res) => {
     message: "Job application accepted successfully",
   });
 });
+const myApplications = catchAsync(async (req, res) => {
+  const applications = await jobService.getMyApplicationFromDB(req.user.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "My applications retrieved successfully",
+    data: applications,
+  });
+});
 
 export const jobController = {
   createNewJob,
@@ -94,4 +103,5 @@ export const jobController = {
   getAllApplicationsForJob,
   declineJobApplication,
   acceptJobApplication,
+  myApplications,
 };

@@ -21,10 +21,21 @@ const updateCoachProfile = catchAsync(async (req, res) => {
   });
 });
 
+const allCoaches = catchAsync(async (req, res) => {
+  const coaches = await coachService.getAllCoachesFromDB();
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Coaches retrieved successfully",
+    data: coaches
+  });
+});
+
 
 export const coachController = {
     setupCoachProfile,
     updateCoachProfile,
+    allCoaches,
 };
 
 

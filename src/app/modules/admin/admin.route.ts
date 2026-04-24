@@ -18,5 +18,8 @@ router.get("/job-details/:id", auth(UserRole.Admin), adminController.jobDetails)
 router.get("/club-details/:id", auth(UserRole.Admin), adminController.clubDetails);
 router.get("/match-details/:id", auth(UserRole.Admin), adminController.matchDetails);
 router.delete("/delete-user/:id", auth(UserRole.Admin), adminController.deleteUser)
+router.get("/dashboard-stats", auth(UserRole.Admin), adminController.dashboardStats)
+router.get("/all-users", auth(UserRole.Admin), adminController.allUsers)
+router.get("/user-growth", auth(UserRole.Admin), adminController.userGrowthChartData)
 
 export const adminRoutes = router;

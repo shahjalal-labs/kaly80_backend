@@ -1,6 +1,33 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 
+type TType = "weekly" | "monthly" | "daily";
+
+const DAY_LABELS = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+] as const;
+
+const MONTH_LABELS = [
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
+] as const;
+
 const getAllPlayersFromDB = async (
   page: number = 1,
   limit: number = 10,
@@ -445,6 +472,150 @@ const delteUserFromDB = async (userId: string) => {
   return;
 };
 
+const getDashboardStatsFromDB = async () => {
+  const totalPlayers = await prisma.user.count({ where: { role: "Player" } });
+  const totalCoaches = await prisma.user.count({ where: { role: "Coach" } });
+  const totalScouts = await prisma.user.count({ where: { role: "Scout" } });
+  const totalClubs = await prisma.user.count({ where: { role: "Club" } });
+
+  return {
+    totalPlayers,
+    totalCoaches,
+    totalScouts,
+    totalClubs,
+  };
+};
+
+const getAllUsersFromDB = async (page: number = 1, limit: number = 10) => {
+  const totalUsers = await prisma.user.count({});
+  const filteredUsersCount = await prisma.user.count({});
+  const totalPages = Math.ceil(filteredUsersCount / limit);
+
+  const users = await prisma.user.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      profileImage: true,
+      role: true,
+      createdAt: true,
+      status: true,
+    },
+  });
+
+  return {
+    meta: {
+      totalUsers,
+      filteredUsers: filteredUsersCount,
+      totalPages,
+      currentPage: page,
+    },
+    users,
+  };
+};
+
+const getUserGrowthChartData = async (type: TType) => {
+  const now = new Date();
+  const users = await prisma.user.findMany({
+    select: {
+      createdAt: true,
+    },
+  });
+
+  if (type === "daily") {
+    const startOfWeek = new Date(now);
+    startOfWeek.setHours(0, 0, 0, 0);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+    const dayBuckets = DAY_LABELS.reduce<Record<string, number>>(
+      (acc, label) => {
+        acc[label] = 0;
+        return acc;
+      },
+      {},
+    );
+
+    users.forEach((user) => {
+      const createdAt = user.createdAt;
+
+      if (createdAt < startOfWeek || createdAt >= endOfWeek) {
+        return;
+      }
+
+      const dayLabel = DAY_LABELS[createdAt.getDay()];
+      dayBuckets[dayLabel] += 1;
+    });
+
+    return dayBuckets;
+  }
+
+  if (type === "weekly") {
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const weekBuckets = {
+      firstWeek: 0,
+      secondWeek: 0,
+      thirdWeek: 0,
+      fourthWeek: 0,
+      fifthWeek: 0,
+    };
+
+    users.forEach((user) => {
+      const createdAt = user.createdAt;
+
+      if (createdAt < startOfMonth || createdAt >= endOfMonth) {
+        return;
+      }
+
+      const weekIndex = Math.floor((createdAt.getDate() - 1) / 7) + 1;
+      const weekLabel =
+        weekIndex === 1
+          ? "firstWeek"
+          : weekIndex === 2
+            ? "secondWeek"
+            : weekIndex === 3
+              ? "thirdWeek"
+              : weekIndex === 4
+                ? "fourthWeek"
+                : "fifthWeek";
+
+      weekBuckets[weekLabel] += 1;
+    });
+
+    return weekBuckets;
+  }
+
+  const currentYear = now.getFullYear();
+  const monthBuckets = MONTH_LABELS.reduce<Record<string, number>>(
+    (acc, label) => {
+      acc[label] = 0;
+      return acc;
+    },
+    {},
+  );
+
+  users.forEach((user) => {
+    const createdAt = user.createdAt;
+
+    if (createdAt.getFullYear() !== currentYear) {
+      return;
+    }
+
+    const monthLabel = MONTH_LABELS[createdAt.getMonth()];
+    monthBuckets[monthLabel] += 1;
+  });
+
+  return monthBuckets;
+};
+
 export const adminService = {
   getAllPlayersFromDB,
   getAllCoachesFromDB,
@@ -459,4 +630,7 @@ export const adminService = {
   getJobDetailsFromDB,
   getClubDetailsFromDB,
   getMatchDetailsFromDB,
+  getDashboardStatsFromDB,
+  getAllUsersFromDB,
+  getUserGrowthChartData,
 };

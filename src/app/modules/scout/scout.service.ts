@@ -131,7 +131,7 @@ const createPlayerReportInDB = async (req: Request) => {
   const scoutId = req.user.id;
 
   const player = await prisma.user.findUniqueOrThrow({
-    where: { id: payload.playerId, role: "Player" },
+    where: { id: payload.playerId },
     select: {
       id: true,
       receiver: true,
@@ -170,8 +170,26 @@ const createPlayerReportInDB = async (req: Request) => {
   return;
 };
 
+const getAllScoutedFromDB = async (scoutId: string) => {
+  const scoutedPlayers = await prisma.report.findMany({
+    where: { scoutId },
+    select: {
+      id: true,
+      player: {
+        select: {
+          fullName: true,
+        },
+      },
+    },
+  });
+
+  return scoutedPlayers;
+}; 
+
+
 export const scoutService = {
   setUpScoutProfileInDB,
   updateScoutProfileInDB,
   createPlayerReportInDB,
+  getAllScoutedFromDB,
 };

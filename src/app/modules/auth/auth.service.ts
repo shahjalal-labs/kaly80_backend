@@ -235,6 +235,7 @@ const myProfile = async (userId: string) => {
       coachProfile: true,
       scoutProfile: true,
       clubProfile: true,
+      receiver:true
     },
   });
   if (!user) {

@@ -57,5 +57,10 @@ router.patch(
   auth(UserRole.Club),
   jobController.acceptJobApplication,
 );
+router.get(
+  "/my-applications",
+  auth(UserRole.Player, UserRole.Coach, UserRole.Scout),
+  jobController.myApplications,
+);
 
 export const jobRoutes = router;
