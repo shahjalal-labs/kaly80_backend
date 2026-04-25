@@ -35,5 +35,10 @@ router.post(
     validateRequest(scoutValidation.playerStatsSchema),
   scoutController.createReport,
 );
+router.get(
+  "/all-scouted",
+  auth(UserRole.Scout),
+  scoutController.allScouted,
+);
 
 export const scoutRoutes = router;
