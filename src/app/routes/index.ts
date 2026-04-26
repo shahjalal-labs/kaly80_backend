@@ -8,6 +8,7 @@ import { scoutRoutes } from "../modules/scout/scout.route";
 import { jobRoutes } from "../modules/job/job.route";
 import { adminRoutes } from "../modules/admin/admin.route";
 import { matchRoutes } from "../modules/match/match.route";
+import { notificationsRoute } from "../modules/notification/notification.route";
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ const moduleRoutes = [
   { path: "/job", route: jobRoutes },
   { path: "/admin", route: adminRoutes },
   { path: "/match", route: matchRoutes },
+  { path: "/notification", route: notificationsRoute },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

@@ -178,14 +178,15 @@ const getAllScoutedFromDB = async (scoutId: string) => {
       player: {
         select: {
           fullName: true,
+          profileImage: true,
+          role: true,
         },
       },
     },
   });
 
   return scoutedPlayers;
-}; 
-
+};
 
 export const scoutService = {
   setUpScoutProfileInDB,

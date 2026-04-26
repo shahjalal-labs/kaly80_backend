@@ -3,6 +3,10 @@ import { uploadInSpace } from "../../../helpers/uploadInSpace";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { getDistanceInKm } from "../../../helpers/getDistance";
+import {
+  sendMultipleNotifications,
+  sendSingleNotification,
+} from "../notification/notification.services";
 
 const createNewJobInDB = async (req: Request) => {
   const clubId = req.user.id;
@@ -42,6 +46,20 @@ const createNewJobInDB = async (req: Request) => {
       longitude: payload.longitude,
     },
   });
+
+  const users = await prisma.user.findMany({
+    where: { role: payload.position },
+    select: {
+      id: true,
+      fcmToken: true,
+    },
+  });
+
+  await sendMultipleNotifications(
+    users,
+    "New Job Posted",
+    `A new job for the position of ${payload.position} has been posted by ${club.fullName}. Check it out!`,
+  );
 
   return;
 };
@@ -210,6 +228,12 @@ const createJobApplicationInDB = async (jobId: string, userId: string) => {
     },
   });
 
+  await sendSingleNotification(
+    job.clubId,
+    "New Job Application",
+    `${user.fullName} has applied for the position of ${job.title}. Check the applications now!`,
+  );
+
   return;
 };
 
@@ -255,6 +279,12 @@ const acceptJobApplicationInDB = async (applicationId: string) => {
       data: { isHired: true },
     });
   });
+
+  await sendSingleNotification(
+    application.userId,
+    "Job Application Accepted",
+    `Congratulations! Your application for the position of ${application.job.title} has been accepted. The club will contact you soon!`,
+  );
 
   return;
 };

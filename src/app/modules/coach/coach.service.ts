@@ -138,19 +138,19 @@ const getAllCoachesFromDB = async () => {
       id: true,
       fullName: true,
       profileImage: true,
+      dob: true,
       coachProfile: {
         omit: {
           id: true,
           createdAt: true,
           updatedAt: true,
-          bio:true,
-          dob:true,
-          skills:true,
-          licences:true,
-          lscSenior:true,
-          lscYouth:true,       
-          expCertificate:true
-
+          bio: true,
+          dob: true,
+          skills: true,
+          licences: true,
+          lscSenior: true,
+          lscYouth: true,
+          expCertificate: true,
         },
       },
       receiver: {
