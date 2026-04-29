@@ -64,6 +64,24 @@ const confirmedMatch = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const confirmedMatchesFromOtherClub = catchAsync(async (req, res) => {
+  const result = await matchService.getConfirmedMatchesfromOtherClubPost(req.user.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Confirmed matches retrieved successfully",
+    data: result,
+  });
+});
+const cancelConfirmMatch = catchAsync(async (req, res) => {
+  const result = await matchService.cancelConfirmMatch(req.params.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Confirmed match canceled successfully",
+    data: result,
+  });
+});
 
 export const matchController = {
   createMatchRequest,
@@ -73,4 +91,6 @@ export const matchController = {
   acceptRejectRequest,
   confirmedMatches,
   confirmedMatch,
+  confirmedMatchesFromOtherClub,
+  cancelConfirmMatch,
 };

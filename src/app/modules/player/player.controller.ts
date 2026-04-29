@@ -1,3 +1,4 @@
+import { TPosition } from "@prisma/client";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { playerService } from "./player.service";
@@ -28,7 +29,13 @@ const addHighlightsVideo = catchAsync(async (req, res) => {
   });
 });
 const allPlayers = catchAsync(async (req, res) => {
-  const players = await playerService.getAllPlayersFromDB(req.query.category as string, req.query.age as any, req.query.location as string);
+  const players = await playerService.getAllPlayersFromDB(
+    req.query.search as string,
+    req.query.category as string,
+    req.query.age as any,
+    req.query.location as string,
+    req.query.position as TPosition,
+  );
   sendResponse(res, {
     success: true,
     statusCode: 200,
@@ -46,11 +53,9 @@ const player = catchAsync(async (req, res) => {
   });
 });
 
-
-
 export const playerController = {
   setupPlayerProfile,
-  updatePlayerProfile, 
+  updatePlayerProfile,
   addHighlightsVideo,
   allPlayers,
   player,

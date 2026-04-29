@@ -41,9 +41,19 @@ router.get(
   matchController.confirmedMatches,
 );
 router.get(
+  "/confirmed/other-club",
+  auth(UserRole.Club),
+  matchController.confirmedMatchesFromOtherClub,
+);
+router.get(
   "/confirmed/:id",
   auth(UserRole.Club),
   matchController.confirmedMatch,
+);
+router.delete(
+  "/confirmed/delete/:id",
+  auth(UserRole.Club),
+  matchController.cancelConfirmMatch,
 );
 
 

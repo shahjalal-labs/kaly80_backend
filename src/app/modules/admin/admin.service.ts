@@ -438,6 +438,7 @@ const getMatchDetailsFromDB = async (matchId: string) => {
           time: true,
           date: true,
           location: true,
+          additionalInfo:true,
           club: {
             select: {
               clubProfile: {

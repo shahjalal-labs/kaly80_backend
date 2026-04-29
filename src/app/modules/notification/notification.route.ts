@@ -14,5 +14,10 @@ router.patch(
   auth(),
   notificationController.getSingleNotification,
 );
+router.patch(
+  "/mark-all-as-read",
+  auth(),
+  notificationController.markAllNotificationAsRead,
+);
 
 export const notificationsRoute = router;

@@ -137,6 +137,7 @@ const getAllClubsFromDB = async (search?: string) => {
           won: true,
           clubName: true,
           members: true,
+          category:true
         },
       },
     },

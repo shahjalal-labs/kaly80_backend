@@ -230,6 +230,64 @@ const getConfirmedMatchFromDB = async (confirmMatchId: string) => {
   return match;
 };
 
+const getConfirmedMatchesfromOtherClubPost = async (clubId: string) => {
+  const matches = await prisma.confirmMatch.findMany({
+    where: {
+      clubId,
+    },
+    select: {
+      id: true,
+      club: {
+        select: {
+          clubProfile: {
+            select: {
+              clubName: true,
+              logo: true,
+            },
+          },
+        },
+      },
+      match: {
+        select: {
+          location: true,
+          date: true,
+          time: true,
+          matchType: true,
+          ageCategory: true,
+          ticketPrice: true,
+          club: {
+            select: {
+              clubProfile: {
+                select: {
+                  clubName: true,
+                  logo: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  return matches;
+};
+
+const cancelConfirmMatch = async (matchId: string) => {
+  const confirmMatch = await prisma.confirmMatch.findUniqueOrThrow({
+    where: { id: matchId },
+  });
+  await prisma.confirmMatch.delete({
+    where: { id: matchId },
+  });
+
+  await prisma.match.update({
+    where: { id: confirmMatch.matchId },
+    data: { isTeamSelect: false, isActive: true },
+  });
+
+  return;
+};
+
 export const matchService = {
   createMatchRequestInDB,
   sendMatchRequest,
@@ -238,4 +296,6 @@ export const matchService = {
   acceptRejectMatchRequest,
   getConfirmedMatchesFromDB,
   getConfirmedMatchFromDB,
+  getConfirmedMatchesfromOtherClubPost,
+  cancelConfirmMatch,
 };

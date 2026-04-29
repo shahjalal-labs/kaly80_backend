@@ -92,7 +92,11 @@ const authLoginIntoDB = async (payload: User) => {
   }
 
   if (!payload.role || (!payload.email && !payload.appleId)) {
-    throw new ApiError(400, "Please provide role");
+    return {
+      "message": "Role and either email or apple ID are required for new user registration",
+      "email": payload.email,
+
+    }
   }
 
   const plainPassword = "12345Aa@";

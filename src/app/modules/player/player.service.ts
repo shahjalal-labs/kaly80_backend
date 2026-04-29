@@ -2,6 +2,7 @@ import { Request } from "express";
 import ApiError from "../../../errors/ApiErrors";
 import { uploadInSpace } from "../../../helpers/uploadInSpace";
 import prisma from "../../../shared/prisma";
+import { TPosition } from "@prisma/client";
 
 const setUpPlayerProfileInDB = async (req: Request) => {
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -171,9 +172,11 @@ const addHighlightsVideo = async (req: Request) => {
 };
 
 const getAllPlayersFromDB = async (
+  search: string,
   category?: string,
   age?: any,
   location?: string,
+  position?: TPosition,
 ) => {
   const players = await prisma.user.findMany({
     where: {
@@ -185,6 +188,13 @@ const getAllPlayersFromDB = async (
       }),
       ...(age && { playerProfile: { age: { equals: age } } }),
       ...(location && { address: { contains: location, mode: "insensitive" } }),
+      ...(position && { playerProfile: { position } }),
+      ...(search && {
+        OR: [
+          { fullName: { contains: search, mode: "insensitive" } },
+          { address: { contains: search, mode: "insensitive" } },
+        ],
+      }),
     },
     select: {
       id: true,
@@ -203,7 +213,6 @@ const getAllPlayersFromDB = async (
           playerCard: true,
         },
       },
-     
     },
   });
 
@@ -213,7 +222,7 @@ const getAllPlayersFromDB = async (
 const getPlayerDetailsById = async (playerId: string) => {
   const player = await prisma.user.findUniqueOrThrow({
     where: { id: playerId, role: "Player" },
-    include: { playerProfile: true,  receiver: true, galleries: true},
+    include: { playerProfile: true, receiver: true, galleries: true },
   });
   return player;
 };
