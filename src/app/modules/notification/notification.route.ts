@@ -15,7 +15,7 @@ router.patch(
   notificationController.getSingleNotification,
 );
 router.patch(
-  "/mark-all-as-read",
+  "/mark/all-as-read",
   auth(),
   notificationController.markAllNotificationAsRead,
 );
