@@ -5,6 +5,7 @@ import router from "./app/routes";
 import GlobalErrorHandler from "./app/middlewares/globalErrorHandler";
 import path from "path";
 import prisma from "./shared/prisma";
+import { privacyPolicy, termsandconditions } from "./app/routes/viewRoute";
 // import { bullBoardRouter } from "./bullBoard";
 // import basicAuth from "express-basic-auth";
 
@@ -36,6 +37,14 @@ app.get("/api/v1", (req: Request, res: Response) => {
   res.send({
     Message: "Welcome to api version 1",
   });
+});
+
+
+app.get("/privacy-policy", (req, res) => {
+  res.send(privacyPolicy());
+});
+app.get("/terms-and-conditions", (req, res) => {
+  res.send(termsandconditions());
 });
 
 // Router setup
