@@ -8,9 +8,9 @@ const sendEmail = async (
 ) => {
   // Create a transporter
   const transporter = nodemailer.createTransport({
-    host: "mail.betopiagroup.com",
-    port: 465,
-    secure: true,
+    service: "gmail",
+    port: 587,
+    secure: false,
     auth: {
       user: config.emailSender.email,
       pass: config.emailSender.app_pass,
