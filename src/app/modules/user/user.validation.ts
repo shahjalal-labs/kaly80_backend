@@ -9,7 +9,7 @@ const userRegisterValidationSchema = z.object({
 });
 
 const verificationSchema = z.object({
-  email: z.string().min(10, "Phone Number min 10 Digit"),
+  email: z.string().email("Invalid email address"),
   otp: z.string().min(4, "OTP must be at least 4 characters long"),
 });
 
