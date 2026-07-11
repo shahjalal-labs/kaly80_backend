@@ -73,8 +73,8 @@ model PlayerProfile {
   id                 String     @id @default(auto()) @map("_id") @db.ObjectId
   userId             String     @unique @db.ObjectId
   gender             Gender
-  profession         String
-  subProfession      String
+  profession         String?
+  subProfession      String?
   city               String
   bio                String
   education          String?

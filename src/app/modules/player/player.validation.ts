@@ -18,8 +18,8 @@ export const TPositionEnum = z.enum([
 
 const playerProfileSchema = z.object({
   gender: TGenderEnum,
-  profession: z.string().min(1, "Profession is required"),
-  subProfession: z.string().min(1, "Sub profession is required"),
+  profession: z.string().min(1, "Profession is required").optional(),
+  subProfession: z.string().min(1, "Sub profession is required").optional(),
   city: z.string().min(1, "City is required"),
   bio: z.string(),
   education: z.string().optional(),
