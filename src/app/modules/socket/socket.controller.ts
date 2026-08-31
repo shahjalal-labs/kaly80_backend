@@ -4,6 +4,7 @@ import prisma from "../../../shared/prisma";
 import { verifyWebSocketToken } from "./socket.service";
 import { parse } from "url";
 import redisClient from "../../../helpers/redis";
+import { sendSingleNotification } from "../notification/notification.services";
 
 interface CustomWebSocket extends WebSocket {
   userId?: string;
@@ -296,6 +297,30 @@ export function setupWebSocketServer(server: any) {
 
             const senderConversations = await getConversationsForUser(userId);
             ws.send(JSON.stringify({ type: "member-conversation", conversations: senderConversations }));
+
+            const targetReceiverId =
+              receiverId ||
+              (roomInfo.senderId === userId
+                ? roomInfo.receiverId
+                : roomInfo.senderId);
+
+            const senderUser = await prisma.user.findUnique({
+              where: { id: userId },
+              select: { fullName: true },
+            });
+
+            const notificationTitle = `${senderUser?.fullName} sent you a message`;
+            const notificationContent =
+              content ||
+              (fileUrl && fileUrl.length > 0 && fileUrl[0] !== ""
+                ? "Sent a file"
+                : "Sent a message");
+
+            await sendSingleNotification(
+              targetReceiverId,
+              notificationTitle,
+              notificationContent,
+            );
 
             break;
           }

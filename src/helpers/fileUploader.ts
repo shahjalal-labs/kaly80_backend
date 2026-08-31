@@ -21,6 +21,7 @@ const upload = multer({
       "application/zip",
       "application/pdf",
       "application/msword",
+      "application/octet-stream",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
     if (!allowedMimeTypes.includes(file.mimetype)) {

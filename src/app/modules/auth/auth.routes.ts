@@ -43,4 +43,18 @@ router.put(
   authController.addPhotoToGallery,
 );
 
+router.delete(
+  "/gallery/:id",
+  auth(UserRole.Player, UserRole.Coach),
+  authController.deletePhotoFromGallery,
+);
+
+router.put(
+  "/gallery/update",
+  fileUploader.galleryImage,
+  parseBodyData,
+  auth(UserRole.Player, UserRole.Coach),
+  authController.updatePhotoInGallery,
+);
+
 export const authRoute = router;

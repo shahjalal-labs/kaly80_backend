@@ -41,6 +41,7 @@ const ALLOWED_MIME_TYPES = [
   "application/zip",
   "application/pdf",
   "application/msword",
+  "application/octet-stream",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 

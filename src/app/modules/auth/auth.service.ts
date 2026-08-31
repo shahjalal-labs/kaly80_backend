@@ -93,10 +93,10 @@ const authLoginIntoDB = async (payload: User) => {
 
   if (!payload.role || (!payload.email && !payload.appleId)) {
     return {
-      "message": "Role and either email or apple ID are required for new user registration",
-      "email": payload.email,
-
-    }
+      message:
+        "Role and either email or apple ID are required for new user registration",
+      email: payload.email,
+    };
   }
 
   const plainPassword = "12345Aa@";
@@ -239,7 +239,7 @@ const myProfile = async (userId: string) => {
       coachProfile: true,
       scoutProfile: true,
       clubProfile: true,
-      receiver:true
+      receiver: true,
     },
   });
   if (!user) {
@@ -386,6 +386,43 @@ const addPhotoInGallery = async (req: Request) => {
   return;
 };
 
+const deletePhotoFromGallery = async (galleryId: string) => {
+  await prisma.gallery.delete({
+    where: { id: galleryId },
+  });
+
+  return;
+};
+
+const updatePhotoInGallery = async (req: Request) => {
+  const file = req.file as Express.Multer.File | undefined;
+  const galleryId = req.body.galleryId;
+
+  await prisma.gallery.findUniqueOrThrow({
+    where: { id: galleryId },
+  });
+
+  const processImage = async (file: Express.Multer.File, folder: string) => {
+    if (!file) return null;
+    return uploadInSpace(file, `courses/${folder}`);
+  };
+
+  const galleryImage = file ? await processImage(file, "galleryImage") : null;
+
+  if (!galleryImage) {
+    throw new ApiError(404, "Image is required");
+  }
+
+  await prisma.gallery.update({
+    where: { id: galleryId },
+    data: {
+      galleryImage,
+    },
+  });
+
+  return;
+};
+
 export const authService = {
   loginUserIntoDB,
   authLoginIntoDB,
@@ -398,4 +435,6 @@ export const authService = {
   deleteAccount,
   userLocationUpdateInDB,
   addPhotoInGallery,
+  deletePhotoFromGallery,
+  updatePhotoInGallery,
 };

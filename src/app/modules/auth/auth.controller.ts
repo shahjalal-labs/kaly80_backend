@@ -126,6 +126,24 @@ const addPhotoToGallery = catchAsync(async (req, res) => {
   });
 });
 
+const deletePhotoFromGallery = catchAsync(async (req, res) => {
+  await authService.deletePhotoFromGallery(req.params.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Photo deleted from gallery successful",
+  });
+});
+
+const updatePhotoInGallery = catchAsync(async (req, res) => {
+  await authService.updatePhotoInGallery(req);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Photo updated in gallery successful",
+  });
+});
+
 export const authController = {
   loginUser,
   authLogin,
@@ -138,4 +156,6 @@ export const authController = {
   changePassword,
   deleteAccount,
   addPhotoToGallery,
+  deletePhotoFromGallery,
+  updatePhotoInGallery,
 };
