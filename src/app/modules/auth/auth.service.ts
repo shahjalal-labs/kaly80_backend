@@ -230,6 +230,7 @@ const myProfile = async (userId: string) => {
       email: true,
       galleries: {
         select: {
+          id: true,
           title: true,
           date: true,
           galleryImage: true,
