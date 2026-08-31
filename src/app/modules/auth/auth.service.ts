@@ -398,8 +398,9 @@ const deletePhotoFromGallery = async (galleryId: string) => {
 const updatePhotoInGallery = async (req: Request) => {
   const file = req.file as Express.Multer.File | undefined;
   const galleryId = req.body.galleryId;
+  const payload = req.body;
 
-  await prisma.gallery.findUniqueOrThrow({
+  const gallery = await prisma.gallery.findUniqueOrThrow({
     where: { id: galleryId },
   });
 
@@ -410,14 +411,14 @@ const updatePhotoInGallery = async (req: Request) => {
 
   const galleryImage = file ? await processImage(file, "galleryImage") : null;
 
-  if (!galleryImage) {
-    throw new ApiError(404, "Image is required");
-  }
+ 
 
   await prisma.gallery.update({
     where: { id: galleryId },
     data: {
-      galleryImage,
+      galleryImage: galleryImage ? galleryImage : gallery.galleryImage,
+      title: payload.title ? payload.title : gallery.title,
+      date: payload.date ? payload.date : gallery.date,
     },
   });
 
