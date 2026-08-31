@@ -17,6 +17,60 @@ const connectedUsers = new Set<CustomWebSocket>();
 const adminRoomWatchers = new Map<string, Set<WebSocket>>();
 let wss;
 
+const markUndeliveredAsDelivered = async (targetUserId: string) => {
+  const rooms = await prisma.room.findMany({
+    where: {
+      OR: [{ senderId: targetUserId }, { receiverId: targetUserId }],
+    },
+    select: { id: true, senderId: true, receiverId: true },
+  });
+
+  for (const room of rooms) {
+    const redisKey = `room:${room.id}:messages`;
+    const redisRaw = await redisClient.lrange(redisKey, 0, -1);
+    if (!redisRaw || redisRaw.length === 0) continue;
+
+    let updated = false;
+    const updatedMessages = redisRaw.map((msgStr: string) => {
+      try {
+        const msg = JSON.parse(msgStr);
+        const recipientId =
+          msg.receiverId ||
+          (room.senderId === msg.senderId ? room.receiverId : room.senderId);
+        if (recipientId === targetUserId && msg.status === "sent") {
+          msg.status = "delivered";
+          updated = true;
+        }
+        return JSON.stringify(msg);
+      } catch (e) {
+        return msgStr;
+      }
+    });
+
+    if (updated) {
+      await redisClient.del(redisKey);
+      await redisClient.rpush(redisKey, ...updatedMessages);
+
+      const partnerId =
+        room.senderId === targetUserId ? room.receiverId : room.senderId;
+      const partnerSockets = Array.from(connectedUsers).filter(
+        (c) => c.userId === partnerId
+      );
+      partnerSockets.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(
+            JSON.stringify({
+              type: "messages-delivered",
+              roomId: room.id,
+              receiverId: targetUserId,
+            })
+          );
+        }
+      });
+    }
+  }
+};
+
 export function setupWebSocketServer(server: any) {
   wss = new WebSocketServer({ server });
 
@@ -41,6 +95,8 @@ export function setupWebSocketServer(server: any) {
     ws.userId = userId;
     ws.role = decoded.role === "admin" ? "admin" : "member";
     connectedUsers.add(ws);
+
+    await markUndeliveredAsDelivered(userId);
 
     if (!roomUsers.has(userId)) roomUsers.set(userId, new Set());
     roomUsers.get(userId)?.add(ws);
@@ -98,6 +154,7 @@ export function setupWebSocketServer(server: any) {
             content:
               latestRedisMsg.content ??
               (latestRedisMsg.fileUrl ? "sent file" : null),
+            status: latestRedisMsg.status ?? "sent",
             createdAt: latestRedisMsg.createdAt,
           };
         }
@@ -172,6 +229,7 @@ export function setupWebSocketServer(server: any) {
                 lastMessage: lastMessage
                   ? {
                       content: lastMessageContent,
+                      status: lastMessage?.status ?? "sent",
                       createdAt: lastMessage?.createdAt || null,
                     }
                   : null,
@@ -252,25 +310,46 @@ export function setupWebSocketServer(server: any) {
               return ws.send(JSON.stringify({ type: "error", message: "Room not found" }));
             }
 
+            const targetReceiverId =
+              receiverId ||
+              (roomInfo.senderId === userId
+                ? roomInfo.receiverId
+                : roomInfo.senderId);
+
+            const isReceiverConnected = Array.from(connectedUsers).some(
+              (client) => client.userId === targetReceiverId
+            );
+
             const messagePayload = {
               content,
               senderId: userId,
-              receiverId,
+              receiverId: targetReceiverId,
               roomId,
               fileUrl: fileUrl ?? [""],
+              status: isReceiverConnected ? "delivered" : "sent",
               createdAt: new Date().toISOString(),
             };
 
             const redisKey = `room:${roomId}:messages`;
             await redisClient.rpush(redisKey, JSON.stringify(messagePayload));
 
-            const unreadKey = `room:${roomId}:unread:${receiverId}`;
+            const unreadKey = `room:${roomId}:unread:${targetReceiverId}`;
             await redisClient.incr(unreadKey);
             const count = await redisClient.llen(redisKey);
 
             if (count >= 30) {
               const messagesToSaveRaw = await redisClient.lrange(redisKey, 0, 14);
-              const messagesToSave = messagesToSaveRaw.map((msg: any) => JSON.parse(msg));
+              const messagesToSave = messagesToSaveRaw.map((msgStr: any) => {
+                const msg = JSON.parse(msgStr);
+                return {
+                  roomId: msg.roomId,
+                  user1Id: msg.senderId,
+                  user2Id: msg.receiverId,
+                  content: msg.content,
+                  fileUrl: msg.fileUrl || [],
+                  createdAt: msg.createdAt ? new Date(msg.createdAt) : new Date(),
+                };
+              });
               await prisma.message.createMany({ data: messagesToSave });
               await redisClient.ltrim(redisKey, 15, -1);
             }
@@ -287,22 +366,16 @@ export function setupWebSocketServer(server: any) {
             });
 
             const target = Array.from(connectedUsers).find(
-              (client) => client.userId === receiverId
+              (client) => client.userId === targetReceiverId
             );
 
             if (target) {
-              const receiverConversations = await getConversationsForUser(receiverId);
+              const receiverConversations = await getConversationsForUser(targetReceiverId);
               target.send(JSON.stringify({ type: "member-conversation", conversations: receiverConversations }));
             }
 
             const senderConversations = await getConversationsForUser(userId);
             ws.send(JSON.stringify({ type: "member-conversation", conversations: senderConversations }));
-
-            const targetReceiverId =
-              receiverId ||
-              (roomInfo.senderId === userId
-                ? roomInfo.receiverId
-                : roomInfo.senderId);
 
             const senderUser = await prisma.user.findUnique({
               where: { id: userId },
@@ -356,6 +429,7 @@ export function setupWebSocketServer(server: any) {
                 const latestMessage = latestMsg
                   ? {
                       content: latestMsg.content ?? (latestMsg.fileUrl ? "sent file" : null),
+                      status: latestMsg.status ?? "sent",
                       createdAt: latestMsg.createdAt,
                     }
                   : null;
