@@ -54,7 +54,7 @@ const markUndeliveredAsDelivered = async (targetUserId: string) => {
       const partnerId =
         room.senderId === targetUserId ? room.receiverId : room.senderId;
       const partnerSockets = Array.from(connectedUsers).filter(
-        (c) => c.userId === partnerId
+        (c) => c.userId === partnerId,
       );
       partnerSockets.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
@@ -63,12 +63,66 @@ const markUndeliveredAsDelivered = async (targetUserId: string) => {
               type: "messages-delivered",
               roomId: room.id,
               receiverId: targetUserId,
-            })
+            }),
           );
         }
       });
     }
   }
+};
+
+const markMessagesAsSeen = async (roomId: string, targetUserId: string) => {
+  const redisKey = `room:${roomId}:messages`;
+  const redisRaw = await redisClient.lrange(redisKey, 0, -1);
+  if (!redisRaw || redisRaw.length === 0) return;
+
+  let updated = false;
+  const updatedMessages = redisRaw.map((msgStr: string) => {
+    try {
+      const msg = JSON.parse(msgStr);
+      if (
+        msg.receiverId === targetUserId &&
+        (msg.status === "sent" || msg.status === "delivered")
+      ) {
+        msg.status = "seen";
+        updated = true;
+      }
+      return JSON.stringify(msg);
+    } catch (e) {
+      return msgStr;
+    }
+  });
+
+  if (!updated) return;
+
+  await redisClient.del(redisKey);
+  await redisClient.rpush(redisKey, ...updatedMessages);
+
+  const roomInfo = await prisma.room.findUnique({
+    where: { id: roomId },
+    select: { senderId: true, receiverId: true },
+  });
+
+  if (!roomInfo) return;
+
+  const partnerId =
+    roomInfo.senderId === targetUserId
+      ? roomInfo.receiverId
+      : roomInfo.senderId;
+  const partnerSockets = Array.from(connectedUsers).filter(
+    (c) => c.userId === partnerId,
+  );
+  partnerSockets.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(
+        JSON.stringify({
+          type: "messages-seen",
+          roomId,
+          receiverId: targetUserId,
+        }),
+      );
+    }
+  });
 };
 
 export function setupWebSocketServer(server: any) {
@@ -145,7 +199,7 @@ export function setupWebSocketServer(server: any) {
 
           redisMessages.sort(
             (a: any, b: any) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           );
 
           const latestRedisMsg = redisMessages[0];
@@ -170,20 +224,20 @@ export function setupWebSocketServer(server: any) {
           lastMessage: latestMessage,
           unreadCount,
         };
-      })
+      }),
     );
 
     ws.send(
       JSON.stringify({
         type: "member-conversation",
         conversations: formattedConversations,
-      })
+      }),
     );
 
     ws.on("message", async (message: any) => {
       try {
         const { type, receiverId, content, fileUrl } = JSON.parse(
-          message.toString()
+          message.toString(),
         );
 
         const getConversationsForUser = async (targetUserId: string) => {
@@ -193,8 +247,12 @@ export function setupWebSocketServer(server: any) {
             },
             orderBy: { updatedAt: "desc" },
             include: {
-              user1: { select: { id: true, fullName: true, profileImage: true } },
-              user2: { select: { id: true, fullName: true, profileImage: true } },
+              user1: {
+                select: { id: true, fullName: true, profileImage: true },
+              },
+              user2: {
+                select: { id: true, fullName: true, profileImage: true },
+              },
             },
           });
 
@@ -235,7 +293,7 @@ export function setupWebSocketServer(server: any) {
                   : null,
                 unreadCount,
               };
-            })
+            }),
           );
         };
 
@@ -244,7 +302,10 @@ export function setupWebSocketServer(server: any) {
           case "member-subscribe": {
             if (!receiverId) {
               return ws.send(
-                JSON.stringify({ type: "error", message: "receiverId is required" })
+                JSON.stringify({
+                  type: "error",
+                  message: "receiverId is required",
+                }),
               );
             }
 
@@ -277,18 +338,23 @@ export function setupWebSocketServer(server: any) {
               roomUsers.set(roomId, new Set());
             }
             roomUsers.get(roomId)?.add(ws);
-
+            await markMessagesAsSeen(roomId, userId);
             const redisKey = `room:${roomId}:messages`;
             const redisRaw = await redisClient.lrange(redisKey, -30, -1);
-            const messages = redisRaw.reverse().map((msg: any) => JSON.parse(msg));
+            const messages = redisRaw
+              .reverse()
+              .map((msg: any) => JSON.parse(msg));
 
             ws.send(
-              JSON.stringify({ type: "past-messages", roomId, messages })
+              JSON.stringify({ type: "past-messages", roomId, messages }),
             );
 
             const senderConversations = await getConversationsForUser(userId);
             ws.send(
-              JSON.stringify({ type: "member-conversation", conversations: senderConversations })
+              JSON.stringify({
+                type: "member-conversation",
+                conversations: senderConversations,
+              }),
             );
 
             break;
@@ -297,7 +363,10 @@ export function setupWebSocketServer(server: any) {
           case "member-send-message": {
             if (!roomId) {
               return ws.send(
-                JSON.stringify({ type: "error", message: "You are not subscribed to any room" })
+                JSON.stringify({
+                  type: "error",
+                  message: "You are not subscribed to any room",
+                }),
               );
             }
 
@@ -307,7 +376,9 @@ export function setupWebSocketServer(server: any) {
             });
 
             if (!roomInfo) {
-              return ws.send(JSON.stringify({ type: "error", message: "Room not found" }));
+              return ws.send(
+                JSON.stringify({ type: "error", message: "Room not found" }),
+              );
             }
 
             const targetReceiverId =
@@ -317,7 +388,7 @@ export function setupWebSocketServer(server: any) {
                 : roomInfo.senderId);
 
             const isReceiverConnected = Array.from(connectedUsers).some(
-              (client) => client.userId === targetReceiverId
+              (client) => client.userId === targetReceiverId,
             );
 
             const messagePayload = {
@@ -338,7 +409,11 @@ export function setupWebSocketServer(server: any) {
             const count = await redisClient.llen(redisKey);
 
             if (count >= 30) {
-              const messagesToSaveRaw = await redisClient.lrange(redisKey, 0, 14);
+              const messagesToSaveRaw = await redisClient.lrange(
+                redisKey,
+                0,
+                14,
+              );
               const messagesToSave = messagesToSaveRaw.map((msgStr: any) => {
                 const msg = JSON.parse(msgStr);
                 return {
@@ -347,7 +422,9 @@ export function setupWebSocketServer(server: any) {
                   user2Id: msg.receiverId,
                   content: msg.content,
                   fileUrl: msg.fileUrl || [],
-                  createdAt: msg.createdAt ? new Date(msg.createdAt) : new Date(),
+                  createdAt: msg.createdAt
+                    ? new Date(msg.createdAt)
+                    : new Date(),
                 };
               });
               await prisma.message.createMany({ data: messagesToSave });
@@ -361,21 +438,38 @@ export function setupWebSocketServer(server: any) {
 
             roomUsers.get(roomId)?.forEach((client) => {
               if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ type: "member-new-message", message: messagePayload, roomId }));
+                client.send(
+                  JSON.stringify({
+                    type: "member-new-message",
+                    message: messagePayload,
+                    roomId,
+                  }),
+                );
               }
             });
 
             const target = Array.from(connectedUsers).find(
-              (client) => client.userId === targetReceiverId
+              (client) => client.userId === targetReceiverId,
             );
 
             if (target) {
-              const receiverConversations = await getConversationsForUser(targetReceiverId);
-              target.send(JSON.stringify({ type: "member-conversation", conversations: receiverConversations }));
+              const receiverConversations =
+                await getConversationsForUser(targetReceiverId);
+              target.send(
+                JSON.stringify({
+                  type: "member-conversation",
+                  conversations: receiverConversations,
+                }),
+              );
             }
 
             const senderConversations = await getConversationsForUser(userId);
-            ws.send(JSON.stringify({ type: "member-conversation", conversations: senderConversations }));
+            ws.send(
+              JSON.stringify({
+                type: "member-conversation",
+                conversations: senderConversations,
+              }),
+            );
 
             const senderUser = await prisma.user.findUnique({
               where: { id: userId },
@@ -403,8 +497,12 @@ export function setupWebSocketServer(server: any) {
               where: { OR: [{ senderId: userId }, { receiverId: userId }] },
               orderBy: { updatedAt: "desc" },
               include: {
-                user1: { select: { id: true, fullName: true, profileImage: true } },
-                user2: { select: { id: true, fullName: true, profileImage: true } },
+                user1: {
+                  select: { id: true, fullName: true, profileImage: true },
+                },
+                user2: {
+                  select: { id: true, fullName: true, profileImage: true },
+                },
               },
             });
 
@@ -414,31 +512,52 @@ export function setupWebSocketServer(server: any) {
 
             const formattedConversations = await Promise.all(
               conversations.map(async (room) => {
-                const partner = room.senderId === userId ? room.user2 : room.user1;
-                const isActive = connectedUserIds.includes(partner?.id as string);
+                const partner =
+                  room.senderId === userId ? room.user2 : room.user1;
+                const isActive = connectedUserIds.includes(
+                  partner?.id as string,
+                );
 
                 const redisKey = `room:${room.id}:messages`;
                 const unreadKey = `room:${room.id}:unread:${userId}`;
 
                 const latestRaw = await redisClient.lrange(redisKey, -1, -1);
-                const latestMsg = latestRaw.length > 0 ? JSON.parse(latestRaw[0]) : null;
+                const latestMsg =
+                  latestRaw.length > 0 ? JSON.parse(latestRaw[0]) : null;
 
                 const unreadCountStr = await redisClient.get(unreadKey);
                 const unreadCount = parseInt(unreadCountStr || "0", 30);
 
                 const latestMessage = latestMsg
                   ? {
-                      content: latestMsg.content ?? (latestMsg.fileUrl ? "sent file" : null),
+                      content:
+                        latestMsg.content ??
+                        (latestMsg.fileUrl ? "sent file" : null),
                       status: latestMsg.status ?? "sent",
                       createdAt: latestMsg.createdAt,
                     }
                   : null;
 
-                return { roomId: room.id, partner: { id: partner?.id, fullName: partner?.fullName, profileImage: partner?.profileImage, isActive }, lastMessage: latestMessage, unreadCount };
-              })
+                return {
+                  roomId: room.id,
+                  partner: {
+                    id: partner?.id,
+                    fullName: partner?.fullName,
+                    profileImage: partner?.profileImage,
+                    isActive,
+                  },
+                  lastMessage: latestMessage,
+                  unreadCount,
+                };
+              }),
             );
 
-            ws.send(JSON.stringify({ type: "member-conversation", conversations: formattedConversations }));
+            ws.send(
+              JSON.stringify({
+                type: "member-conversation",
+                conversations: formattedConversations,
+              }),
+            );
 
             break;
           }
@@ -449,7 +568,8 @@ export function setupWebSocketServer(server: any) {
             const { roomId } = JSON.parse(message.toString());
             if (!roomId) return;
 
-            if (!adminRoomWatchers.has(roomId)) adminRoomWatchers.set(roomId, new Set());
+            if (!adminRoomWatchers.has(roomId))
+              adminRoomWatchers.set(roomId, new Set());
             adminRoomWatchers.get(roomId)?.add(ws);
 
             const dbMessages = await prisma.message.findMany({
@@ -462,17 +582,26 @@ export function setupWebSocketServer(server: any) {
             const redisMessages = redisRaw.map((m) => JSON.parse(m));
 
             const messages = [...dbMessages, ...redisMessages].sort(
-              (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+              (a, b) =>
+                new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime(),
             );
 
-            ws.send(JSON.stringify({ type: "admin-room-messages", roomId, messages }));
+            ws.send(
+              JSON.stringify({ type: "admin-room-messages", roomId, messages }),
+            );
 
             break;
           }
           // --- ADMIN LOGIC END ---
-          
+
           default:
-            ws.send(JSON.stringify({ type: "error", message: "Invalid message type" }));
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message: "Invalid message type",
+              }),
+            );
         }
       } catch (err: unknown) {
         if (err instanceof SyntaxError) {
@@ -480,7 +609,9 @@ export function setupWebSocketServer(server: any) {
         } else if (err instanceof Error) {
           ws.send(JSON.stringify({ type: "error", message: err }));
         } else {
-          ws.send(JSON.stringify({ type: "error", message: "Unexpected error" }));
+          ws.send(
+            JSON.stringify({ type: "error", message: "Unexpected error" }),
+          );
         }
       }
     });
